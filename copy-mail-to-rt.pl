@@ -9,6 +9,8 @@ use LinuxiaSupportIntegration;
 use YAML qw/LoadFile Dump/;
 use Getopt::Long;
 use Data::Dumper;
+binmode STDOUT, ":encoding(utf-8)";
+
 
 my ($subject,
     $from,
@@ -39,9 +41,11 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(%$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 1, %$conf);
 
-print join("\n", $linuxia->show_mails(subject => $subject, from => $from));
+$linuxia->mail_search_params(subject => $subject, from => $from);
+
+print join("\n", $linuxia->show_mails);
 exit if $dry_run;
 
 if ($ticket) {

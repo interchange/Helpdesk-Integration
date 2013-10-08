@@ -3,7 +3,9 @@ use strict;
 use warnings;
 
 use Net::IMAP::Client;
+use RT::Client::REST;
 use Email::MIME;
+use Error qw(try otherwise);
 
 use Moo;
 
@@ -34,8 +36,10 @@ has rt_password => (is => 'ro');
 has teamwork_api_key => (is => 'ro');
 has teamwork_host => (is => 'ro');
 
+# object
 has ua_obj => (is => 'rwp');
 has imap_obj => (is => 'rwp');
+has rt_obj => (is => 'rwp');
 
 has error => (is => 'rwp');
 has current_mail_ids => (is => 'rwp',
@@ -47,6 +51,28 @@ has current_mail_objects => (is => 'rwp',
 has imap_backup_folder => (is => 'rw',
                            default => sub { return "RT-Archive" });
 
+has debug_mode => (is => 'rw');
+
+sub rt {
+    my $self = shift;
+    my $rt = $self->rt_obj;
+    unless ($rt) {
+        $rt = RT::Client::REST->new(
+                                    server => $self->rt_url,
+                                    timeout => 30,
+                                   );
+        # initialize, log in, and store the object
+        my $user = $self->rt_user;
+        my $password = $self->rt_password;
+        try {
+            $rt->login(username => $user, password => $password);
+        } otherwise  {
+            die "problem logging in: ", shift->message;
+        };
+        $self->_set_rt_obj($rt);
+    }
+    return $rt;
+}
 
 sub imap {
     my $self = shift;
@@ -69,19 +95,31 @@ sub imap {
         $imap->login or die $imap->last_error;
         $self->_set_imap_obj($imap);
     }
-    return $self->imap_obj;
+    return $imap;
 }
 
+has _mail_search_hash => (is => 'rw',
+                          default => sub { return {} },
+                         );
+
+sub mail_search_params {
+    my ($self, %search) = @_;
+    my %do_search;
+    if (%search) {
+        foreach my $k (keys %search) {
+            if ($search{$k}) {
+                $do_search{$k} = $search{$k};
+            }
+        }
+        $self->_mail_search_hash(\%do_search);
+    }
+    return %{ $self->_mail_search_hash };
+}
 
 sub list_mails {
-    my ($self, %search) = @_;
+    my $self = shift;
     $self->imap->select($self->imap_target_folder);
-    my %do_search;
-    foreach my $k (keys %search) {
-        if ($search{$k}) {
-            $do_search{$k} = $search{$k};
-        }
-    }
+    my %do_search = $self->mail_search_params;
     my $ids = [];
 
     # to do: set sorting
@@ -126,8 +164,8 @@ sub show_mails {
                From => $mail->[1]->header("From"),
                To   => $mail->[1]->header("To"),
                $mail->[1]->header("Date"),
-               $mail->[1]->header("Subject"),
-               substr($mail->[1]->body, 0, 50) . "\n");
+               "\nSubject: " . $mail->[1]->header("Subject"),
+               "\n" . substr($mail->[1]->body_str, 0, 50) . "\n");
     }
     return @summary;
 }
@@ -146,14 +184,44 @@ sub _add_mails_to_ticket {
     my ($self, $ticket, $comment) = @_;
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
-    $self->archive_mails(@ids);
+    my @archive;
+    foreach my $mail ($self->parse_mails(@ids)) {
+        my $id = $mail->[0];
+        my $eml = $mail->[1];
+        die "Unexpected failure" unless $eml;
+
+        # the REST interface doesn't seem to support the from header
+        # (only cc and attachments), so it should be OK to inject
+        # these info in the body
+        try {
+            my $body = "Mail from " . $eml->header('From')
+              . " on " . $eml->header('Date')
+                . "\n" . ($eml->header('Subject') || "")
+                  . "\n" . $eml->body_str;
+
+            if ($comment) {
+                # here we could have attachments in the future
+                $self->rt->comment(ticket_id => $ticket,
+                                   message => $body);
+            }
+            else {
+                $self->rt->correspond(ticket_id => $ticket,
+                                      message => $body);
+            }
+            push @archive, $id;
+
+        } otherwise {
+            warn "$id couldn't be processed: "  . shift->message;
+        };
+    }
+    $self->archive_mails(@archive);
 }
 
 sub archive_mails {
     my ($self, @ids) = @_;
     return unless @ids;
     $self->imap->copy([@ids], $self->imap_backup_folder_full_path);
-    $self->imap->delete_message([@ids]);
+    $self->imap->delete_message([@ids]) unless $self->debug_mode;
     $self->imap->expunge;
 }
 
