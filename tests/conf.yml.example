@@ -5,3 +5,5 @@ ssl: 0
 port: 0
 rt_user: pinco
 rt_password: pallino
+teamwork_api_key: xxxxxxx
+teamwork_host: myhost.no.proto
