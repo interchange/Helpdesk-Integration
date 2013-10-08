@@ -46,7 +46,11 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 1, %$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 0, %$conf);
+
+# print Dumper($linuxia->imap->folders_more);
+# $linuxia->imap->select("INBOX.RT-backup-Archive");
+# print Dumper($linuxia->imap->search("ALL"));
 
 unless ($subject || $from) {
     warn "No search parameter specified! This would take the whole INBOX!\n";
@@ -93,6 +97,9 @@ It should contain the following keys:
   imap_user: 'marco@test.me'
   imap_pass: "xxxxxxxxxxxxx"
   
+  # optional, defaults to "RT-Archive"
+  imap_backup_folder: "RT-backup-Archive"
+
   # optional
   imap_ssl: 1
   imap_port: 993
