@@ -1,8 +1,9 @@
-server: "imap.server.net"
-user: 'marco@test.me'
-pass: "xxxxxxxxxxxxx"
-ssl: 0
-port: 0
+imap_server: "imap.server.net"
+imap_user: 'marco@test.me'
+imap_pass: "xxxxxxxxxxxxx"
+imap_ssl: 0
+imap_port: 0
+rt_url: http://localhost/rt
 rt_user: pinco
 rt_password: pallino
 teamwork_api_key: xxxxxxx
