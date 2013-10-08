@@ -260,9 +260,10 @@ sub _check_folders {
 sub imap_backup_folder_full_path {
     my $self = shift;
     my $name = $self->imap_backup_folder;
-    $name =~ s/^INBOX\.//; # strip the leading INBOX.
+    my $separator = $self->imap->separator || ".";
+    $name =~ s/^INBOX\Q$separator\E//; # strip the leading INBOX.
     die "No backup folder!" unless $name;
-    return "INBOX.$name";
+    return "INBOX" . $separator . $name;
 }
 
 
