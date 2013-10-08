@@ -8,7 +8,7 @@ use lib "$FindBin::Bin/lib";
 use LinuxiaSupportIntegration;
 use YAML qw/LoadFile Dump/;
 use Getopt::Long;
-
+use Data::Dumper;
 
 my ($subject,
     $from,
@@ -41,10 +41,25 @@ die "Bad configuration file $conf_file" unless $conf;
 
 my $linuxia = LinuxiaSupportIntegration->new(%$conf);
 
-if ($dry_run) {
-    print join("\n", $linuxia->show_mails(subject => $subject, from => $from));
-    exit;
+print join("\n", $linuxia->show_mails(subject => $subject, from => $from));
+exit if $dry_run;
+
+if ($ticket) {
+    if ($comment) {
+        $linuxia->move_mails_to_rt_ticket_comment($ticket);
+    }
+    else {
+        $linuxia->move_mails_to_rt_ticket($ticket);
+    }
 }
+else {
+    $linuxia->create_rt_ticket($queue);
+}
+
+# print Dumper($linuxia->imap->folders_more);
+# $linuxia->imap->select("INBOX.RT-Archive");
+# print Dumper($linuxia->imap->search("ALL"));
+
 
 sub show_help {
     print <<'HELP';

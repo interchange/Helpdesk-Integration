@@ -44,6 +44,9 @@ has current_mail_ids => (is => 'rwp',
 has current_mail_objects => (is => 'rwp',
                              default => sub { return [] });
 
+has imap_backup_folder => (is => 'rw',
+                           default => sub { return "RT-Archive" });
+
 
 sub imap {
     my $self = shift;
@@ -99,8 +102,10 @@ sub list_mails {
 
 
 sub parse_mails {
-    my $self = shift;
-    my @ids = $self->list_mails;
+    my ($self, @ids) = @_;
+    unless (@ids) {
+        @ids = $self->list_mails;
+    }
     my @mails;
     foreach my $id (@ids) {
         my $body = $self->imap->get_rfc822_body($id);
@@ -126,6 +131,64 @@ sub show_mails {
     }
     return @summary;
 }
+
+sub move_mails_to_rt_ticket {
+    my ($self, $ticket) = @_;
+    return $self->_add_mails_to_ticket($ticket);
+}
+
+sub move_mails_to_rt_ticket_comment {
+    my ($self, $ticket) = @_;
+    return $self->_add_mails_to_ticket($ticket, "is_comment");
+}
+
+sub _add_mails_to_ticket {
+    my ($self, $ticket, $comment) = @_;
+    $self->prepare_backup_folder;
+    my @ids = $self->list_mails;
+    $self->archive_mails(@ids);
+}
+
+sub archive_mails {
+    my ($self, @ids) = @_;
+    return unless @ids;
+    $self->imap->copy([@ids], $self->imap_backup_folder_full_path);
+    $self->imap->delete_message([@ids]);
+    $self->imap->expunge;
+}
+
+sub prepare_backup_folder {
+    my $self = shift;
+    my $name = $self->imap_backup_folder_full_path;
+    unless ($self->_check_folders($name)) {
+        $self->imap->create_folder($name);
+    }
+    die "No folder named $name" unless $self->_check_folders($name);
+}
+
+sub _check_folders {
+    my ($self, $name) = @_;
+    my @folders = $self->imap->folders;
+    foreach my $f (@folders) {
+        return 1 if ($f eq $name);
+    }
+    return 0;
+}
+
+sub imap_backup_folder_full_path {
+    my $self = shift;
+    my $name = $self->imap_backup_folder;
+    $name =~ s/^INBOX\.//; # strip the leading INBOX.
+    die "No backup folder!" unless $name;
+    return "INBOX.$name";
+}
+
+
+sub create_rt_ticket {
+    my $self = shift;
+}
+
+
 
 
 1;
