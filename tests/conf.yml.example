@@ -1,0 +1,7 @@
+server: "imap.server.net"
+user: 'marco@test.me'
+pass: "xxxxxxxxxxxxx"
+ssl: 0
+port: 0
+rt_user: pinco
+rt_password: pallino
