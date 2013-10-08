@@ -11,13 +11,14 @@ use Getopt::Long;
 use Data::Dumper;
 binmode STDOUT, ":encoding(utf-8)";
 
-
 my ($subject,
     $from,
     $ticket,
     $comment,
     $help,
     $dry_run,
+    $threshold,
+    $force,
     $queue);
 
 GetOptions (
@@ -27,8 +28,12 @@ GetOptions (
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "dry-run"   => \$dry_run,
+            "force"     => \$force,
+            "threshold=i" => \$threshold,
             "help"      => \$help,
            );
+
+$threshold ||= 5;
 
 my $conf_file = $ARGV[0] || "$FindBin::Bin/conf.yml";
 
@@ -41,7 +46,7 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(%$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 1, %$conf);
 
 unless ($subject || $from) {
     warn "No search parameter specified! This would take the whole INBOX!\n";
@@ -51,8 +56,15 @@ unless ($subject || $from) {
 
 $linuxia->mail_search_params(subject => $subject, from => $from);
 
-print join("\n", $linuxia->show_mails);
+my @mails = $linuxia->show_mails;
+print join("\n", @mails);
 exit if $dry_run;
+
+if (!$force and @mails > $threshold) {
+    warn "Total mail examined: " . scalar(@mails) . ". Threshold exceeded ($threshold), exiting\n";
+    warn "Use --force to override or set an higher --threshold\n";
+    exit;
+}
 
 if ($ticket) {
     if ($comment) {
@@ -129,6 +141,17 @@ Options for adding to RT
   --queue '<string>'
 
     The target queue. Defaults to "General".
+
+  --threshold <num>
+
+    The script will refuse to do anything if the number of the
+    returned mails is greater than than <num> (defaults to 5), because
+    if the search is too generic we will end up slurping most or all
+    the INBOX. To override this you can use the --force options
+
+  --force
+
+    Don't look at the threshold and just do the job.
 
 HELP
 
