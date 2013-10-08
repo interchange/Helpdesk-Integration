@@ -177,14 +177,16 @@ sub move_mails_to_rt_ticket {
 
 sub move_mails_to_rt_ticket_comment {
     my ($self, $ticket) = @_;
-    return $self->_add_mails_to_ticket($ticket, "is_comment");
+    return $self->_add_mails_to_ticket($ticket, { comment => 1 });
 }
 
 sub _add_mails_to_ticket {
-    my ($self, $ticket, $comment) = @_;
+    my ($self, $ticket, $opts) = @_;
+    $opts ||= {};
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
     my @archive;
+
     foreach my $mail ($self->parse_mails(@ids)) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
@@ -199,7 +201,19 @@ sub _add_mails_to_ticket {
                 . "\n" . ($eml->header('Subject') || "")
                   . "\n" . $eml->body_str;
 
-            if ($comment) {
+            # if no ticket provided, we create it and queue the other
+            # mails as correspondence to this one
+            if (!$ticket) {
+                $ticket = $self->rt->create(type => 'ticket',
+                                            set => {
+                                                    Queue => $opts->{queue} || "General",
+                                                    Requestor => $eml->header('From'),
+                                                    Subject => $eml->header('Subject'),
+                                                   },
+                                            text => $body);
+            }
+
+            elsif ($opts->{comment}) {
                 # here we could have attachments in the future
                 $self->rt->comment(ticket_id => $ticket,
                                    message => $body);
@@ -211,7 +225,7 @@ sub _add_mails_to_ticket {
             push @archive, $id;
 
         } otherwise {
-            warn "$id couldn't be processed: "  . shift->message;
+            warn "$id couldn't be processed: "  . shift->message . "\n";
         };
     }
     $self->archive_mails(@archive);
@@ -253,7 +267,8 @@ sub imap_backup_folder_full_path {
 
 
 sub create_rt_ticket {
-    my $self = shift;
+    my ($self, $queue) = @_;
+    return $self->_add_mails_to_ticket(undef, { queue => $queue });
 }
 
 
