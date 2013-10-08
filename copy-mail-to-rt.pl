@@ -41,7 +41,13 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 1, %$conf);
+my $linuxia = LinuxiaSupportIntegration->new(%$conf);
+
+unless ($subject || $from) {
+    warn "No search parameter specified! This would take the whole INBOX!\n";
+    warn "Dry-run mode forced\n";
+    $dry_run = 1;
+}
 
 $linuxia->mail_search_params(subject => $subject, from => $from);
 
@@ -59,11 +65,6 @@ if ($ticket) {
 else {
     $linuxia->create_rt_ticket($queue);
 }
-
-# print Dumper($linuxia->imap->folders_more);
-# $linuxia->imap->select("INBOX.RT-Archive");
-# print Dumper($linuxia->imap->search("ALL"));
-
 
 sub show_help {
     print <<'HELP';
