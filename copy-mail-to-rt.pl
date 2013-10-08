@@ -160,6 +160,9 @@ Options for adding to RT
 
     Don't look at the threshold and just do the job.
 
+Please note that the mails are not deleted but moved into the folder
+specified in the imap_default_folder configuration directive.
+
 HELP
 
 }
