@@ -20,6 +20,7 @@ my ($subject,
     $threshold,
     $teamwork,
     $force,
+    $debug,
     $queue);
 
 GetOptions (
@@ -31,6 +32,7 @@ GetOptions (
             "teamwork"  => \$teamwork,
             "dry-run"   => \$dry_run,
             "force"     => \$force,
+            "debug"     => \$debug,
             "threshold=i" => \$threshold,
             "help"      => \$help,
            );
@@ -48,7 +50,7 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => 0, %$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug, %$conf);
 
 # print Dumper($linuxia->imap->folders_more);
 # $linuxia->imap->select("INBOX.RT-backup-Archive");
@@ -186,6 +188,10 @@ Options for adding to RT/TeamWork
   --force
 
     Don't look at the threshold and just do the job.
+
+  --debug
+
+    Don't archive the mails moving them out of INBOX
 
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.
