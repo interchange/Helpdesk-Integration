@@ -3,8 +3,8 @@ use strict;
 use warnings;
 
 use Net::IMAP::Client;
-use RT::Client::REST;
 use LinuxiaSupportIntegration::TeamWork;
+use LinuxiaSupportIntegration::RT;
 use Email::MIME;
 use Error qw(try otherwise);
 
@@ -72,7 +72,7 @@ sub rt {
     my $self = shift;
     my $rt = $self->rt_obj;
     unless ($rt) {
-        $rt = RT::Client::REST->new(
+        $rt = LinuxiaSupportIntegration::RT->new(
                                     server => $self->rt_url,
                                     timeout => 30,
                                    );
