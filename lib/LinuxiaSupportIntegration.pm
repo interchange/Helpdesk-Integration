@@ -180,6 +180,11 @@ sub move_mails_to_rt_ticket_comment {
     return $self->_add_mails_to_ticket($ticket, { comment => 1 });
 }
 
+sub create_rt_ticket {
+    my ($self, $queue) = @_;
+    return $self->_add_mails_to_ticket(undef, { queue => $queue });
+}
+
 sub _add_mails_to_ticket {
     my ($self, $ticket, $opts) = @_;
     $opts ||= {};
@@ -264,12 +269,6 @@ sub imap_backup_folder_full_path {
     $name =~ s/^INBOX\Q$separator\E//; # strip the leading INBOX.
     die "No backup folder!" unless $name;
     return "INBOX" . $separator . $name;
-}
-
-
-sub create_rt_ticket {
-    my ($self, $queue) = @_;
-    return $self->_add_mails_to_ticket(undef, { queue => $queue });
 }
 
 
