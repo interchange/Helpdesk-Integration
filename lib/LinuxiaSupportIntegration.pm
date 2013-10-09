@@ -244,24 +244,15 @@ sub _add_mails_to_ticket {
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
             if (!$ticket) {
-                $ticket = $self->$type->create(type => 'ticket',
-                                               set => {
-                                                       Queue => $opts->{queue} || "General",
-                                                       Requestor => $eml->header('From'),
-                                                       Subject => $eml->header('Subject'),
-                                                      },
-                                               text => $body);
-                warn "Created ticket $ticket\n";
+                $ticket = $self->$type->linuxia_create($body, $eml, $opts);
+                die "Couldn't create ticket!" unless $ticket;
+                print "Created ticket $ticket\n";
             }
-
             elsif ($opts->{comment}) {
-                # here we could have attachments in the future
-                $self->$type->comment(ticket_id => $ticket,
-                                      message => $body);
+                $self->$type->linuxia_comment($ticket, $body, $eml, $opts);
             }
             else {
-                $self->$type->correspond(ticket_id => $ticket,
-                                         message => $body);
+                $self->$type->linuxia_correspond($ticket, $body, $eml, $opts);
             }
             push @archive, $id;
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use JSON;
 use LWP::UserAgent;
-# use Data::Dumper;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -136,6 +136,7 @@ sub _do_api_request {
         return $res;
     }
     else {
+        print Dumper($res);
         die $res->status_line;
     }
 }
@@ -176,15 +177,14 @@ sub get_projects {
 
 # interface similar to rt.
 
-sub create {
-    my ($self, %args) = @_;
-    my $name = $args{set}{Subject};
-    my $description = $args{text} || "";
-    my $project = $args{set}{Queue};
-    my $requestor = $args{set}{Requestor}; # dunno what to do with that
+sub linuxia_create {
+    my ($self, $body, $eml, $opts) = @_;
+    my $name = $eml->header('Subject');
+    my $description = $body;
+    my $project = $opts->{queue};
+    die "No project found!" unless $project;
     return $self->create_task_list($project, $name, $description);
 }
-
 
 sub create_task_list {
     my ($self, $project, $name, $description) = @_;
@@ -221,26 +221,24 @@ sub create_task_list {
 
 }
 
-sub correspond {
-    my ($self, %args) = @_;
+sub linuxia_correspond {
+    my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   "todo-item" => { content => $args{message},
-                                    description => $args{message}
+                   "todo-item" => { content => $eml->header('Subject'),
+                                    description => $body,
                                   }
                   };
-    my $id = $args{ticket_id};
     die "Missing todo_lists id!" unless $id;
     my $res = $self->_do_api_request(post => "/todo_lists/$id/todo_items.json",
                                      $self->_ua_params($details));
     return;
 }
 
-sub comment {
-    my ($self, %args) = @_;
+sub linuxia_comment {
+    my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   comment => { body => $args{message} }
+                   comment => { body => $body }
                   };
-    my $id = $args{ticket_id};
     die "Missing todo_lists id!" unless $id;
 
     # we can't comment on a task list, but only on a particular task.
