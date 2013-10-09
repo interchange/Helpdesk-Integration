@@ -180,9 +180,17 @@ sub show_mails {
                To   => $mail->[1]->header("To"),
                $mail->[1]->header("Date"),
                "\nSubject: " . $mail->[1]->header("Subject"),
-               "\n" . substr($mail->[1]->body_str, 0, 50) . "\n");
+               "\n" . $self->_cut_mail($mail->[1]->body_str) . "\n");
     }
     return @summary;
+}
+
+sub _cut_mail {
+    my ($self, $body) = @_;
+    my $beginning = substr($body, 0, 50);
+    $beginning =~ s/\r?\n/ /gs;
+    return $beginning;
+    
 }
 
 # RT
