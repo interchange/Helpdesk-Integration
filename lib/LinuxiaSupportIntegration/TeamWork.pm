@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use JSON;
 use LWP::UserAgent;
+# use Data::Dumper;
 
 =head1 NAME
 
@@ -128,17 +129,11 @@ sub _do_api_request {
     # prepend the server name
     die "Missing url" unless $url;
     $args[0] = $self->_fqhost . $url;
+    
+    # print Dumper(\@args);
     my $res = $self->ua->$method(@args);
     if ($res->is_success) {
-        my $body = $res->decoded_content;
-        # decode the json and return the data structure, or just
-        # return
-        if ($body) {
-            return decode_json($body);
-        }
-        else {
-            return;
-        }
+        return $res;
     }
     else {
         die $res->status_line;
@@ -158,11 +153,14 @@ first called.
 
 =cut
 
-has projects => (is => 'rw');
+has projects => (is => 'rw',
+                 default => sub { return {} });
 
 sub get_projects {
     my $self = shift;
-    my $details = $self->_do_api_request(get => '/projects.json');
+    my $res = $self->_do_api_request(get => '/projects.json');
+    return unless $res;
+    my $details = decode_json($res->decoded_content);
     my %projects;
 
     if ($details && $details->{projects}) {
@@ -176,6 +174,90 @@ sub get_projects {
     }
 }
 
+# interface similar to rt.
+
+sub create {
+    my ($self, %args) = @_;
+    my $name = $args{set}{Subject};
+    my $description = $args{text} || "";
+    my $project = $args{set}{Queue};
+    my $requestor = $args{set}{Requestor}; # dunno what to do with that
+    return $self->create_task_list($project, $name, $description);
+}
+
+
+sub create_task_list {
+    my ($self, $project, $name, $description) = @_;
+    die "Missing coordinates! project <$project> and name <$name>"
+      unless ($project && $name);
+    my %projects = %{ $self->projects };
+
+    # look in keys and values of projects
+    my $id = $self->_check_hash($project, \%projects);
+    die "No project found" unless $id;
+    my $details = { "todo-list" => {
+                                  name => $name,
+                                  description => $description
+                                 }
+                  };
+    my $res = $self->_do_api_request(post => "/projects/$id/todo_lists.json",
+                                     $self->_ua_params($details));
+
+    # from the doc:
+
+    # Returns HTTP status code 201 (“Created”) on success, with the
+    # Location header set to the “Get list” URL for the new list. The new
+    # list’s ID can be extracted from that URL. On failure, a non-200
+    # status code will be returned, possibly with error information as the
+    # response’s content.
+    
+    my $location = $res->header("location");
+    if ($location =~ m!([0-9]+)$!) {
+        return $1;
+    }
+    else {
+        die "No id found in $location";
+    }
+
+}
+
+sub _ua_params {
+    my ($self, $hash) = @_;
+    my @params = (
+                  Accept => 'application/json',
+                  'Content-Type' => 'application/json' );
+    push @params, Content => encode_json($hash);
+    return @params;
+}
+
+
+sub _check_hash {
+    my ($self, $id, $hash) = @_;
+    die "wrong usage" unless defined($id);
+    die "wrong hash" unless (ref($hash) eq 'HASH');
+    # print Dumper($hash, $id);
+    if ($hash->{$id}) {
+        return $id;
+    }
+    # not a key? look into the values;
+    my @matches;
+    foreach my $k (keys %$hash) {
+        if ($hash->{$k} eq $id) {
+            push @matches, $k;
+        }
+    }
+    if (@matches > 1) {
+        warn "Multiple matches for $id";
+        return;
+    }
+    elsif (@matches == 1) {
+        return shift(@matches);
+    }
+    else {
+        warn "No matches for $id";
+        return;
+    }
+}
 
 
 1;

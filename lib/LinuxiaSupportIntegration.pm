@@ -82,7 +82,7 @@ sub rt {
         try {
             $rt->login(username => $user, password => $password);
         } otherwise  {
-            die "problem logging in: ", shift->message;
+            die "problem logging in: " . shift;
         };
         $self->_set_rt_obj($rt);
     }
@@ -187,21 +187,22 @@ sub show_mails {
 
 sub move_mails_to_rt_ticket {
     my ($self, $ticket) = @_;
-    return $self->_add_mails_to_ticket($ticket);
+    return $self->_add_mails_to_ticket(rt => $ticket);
 }
 
 sub move_mails_to_rt_ticket_comment {
     my ($self, $ticket) = @_;
-    return $self->_add_mails_to_ticket($ticket, { comment => 1 });
+    return $self->_add_mails_to_ticket(rt => $ticket, { comment => 1 });
 }
 
 sub create_rt_ticket {
     my ($self, $queue) = @_;
-    return $self->_add_mails_to_ticket(undef, { queue => $queue });
+    return $self->_add_mails_to_ticket(rt => undef, { queue => $queue });
 }
 
 sub _add_mails_to_ticket {
-    my ($self, $ticket, $opts) = @_;
+    my ($self, $type, $ticket, $opts) = @_;
+    die "Wrong usage" unless ($type and ($type eq 'rt' or $type eq 'teamwork'));
     $opts ||= {};
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
@@ -224,28 +225,29 @@ sub _add_mails_to_ticket {
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
             if (!$ticket) {
-                $ticket = $self->rt->create(type => 'ticket',
-                                            set => {
-                                                    Queue => $opts->{queue} || "General",
-                                                    Requestor => $eml->header('From'),
-                                                    Subject => $eml->header('Subject'),
-                                                   },
-                                            text => $body);
+                $ticket = $self->$type->create(type => 'ticket',
+                                               set => {
+                                                       Queue => $opts->{queue} || "General",
+                                                       Requestor => $eml->header('From'),
+                                                       Subject => $eml->header('Subject'),
+                                                      },
+                                               text => $body);
+                warn "Created ticket $ticket\n";
             }
 
             elsif ($opts->{comment}) {
                 # here we could have attachments in the future
-                $self->rt->comment(ticket_id => $ticket,
+                $self->$type->comment(ticket_id => $ticket,
                                    message => $body);
             }
             else {
-                $self->rt->correspond(ticket_id => $ticket,
+                $self->$type->correspond(ticket_id => $ticket,
                                       message => $body);
             }
             push @archive, $id;
 
         } otherwise {
-            warn "$id couldn't be processed: "  . shift->message . "\n";
+            warn "$id couldn't be processed: "  . shift . "\n";
         };
     }
     $self->archive_mails(@archive);
@@ -286,7 +288,12 @@ sub imap_backup_folder_full_path {
     return "INBOX" . $separator . $name;
 }
 
+# Teamwork stuff
 
+sub create_teamwork_ticket {
+    my ($self, $queue) = @_;
+    return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue });
+}
 
 
 1;

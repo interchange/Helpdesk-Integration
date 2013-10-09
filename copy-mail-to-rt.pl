@@ -72,22 +72,33 @@ if (!$force and @mails > $threshold) {
     exit;
 }
 
-if ($teamwork) {
-    print Dumper($linuxia->teamwork->get_projects);
-    print Dumper($linuxia->teamwork->projects);
-    exit;
-}
-
 if ($ticket) {
     if ($comment) {
-        $linuxia->move_mails_to_rt_ticket_comment($ticket);
+        if ($teamwork) {
+            # $linuxia->move_mails_to_teamwork_comment($ticket, $queue)
+            die "Not implemented yet";
+        }
+        else {
+            $linuxia->move_mails_to_rt_ticket_comment($ticket);
+        }
     }
     else {
-        $linuxia->move_mails_to_rt_ticket($ticket);
+        if ($teamwork) {
+            # $linuxia->move_mails_to_teamwork($ticket, $queue)
+            die "Not implemented yet";
+        }
+        else {
+            $linuxia->move_mails_to_rt_ticket($ticket);
+        }
     }
 }
 else {
-    $linuxia->create_rt_ticket($queue);
+    if ($teamwork) {
+        $linuxia->create_teamwork_ticket($queue);
+    }
+    else {
+        $linuxia->create_rt_ticket($queue);
+    }
 }
 
 sub show_help {
