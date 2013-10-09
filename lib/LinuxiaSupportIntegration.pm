@@ -234,7 +234,7 @@ sub _add_mails_to_ticket {
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
     my @archive;
-
+    my @messages;
     foreach my $mail ($self->parse_mails(@ids)) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
@@ -254,13 +254,22 @@ sub _add_mails_to_ticket {
             if (!$ticket) {
                 $ticket = $self->$type->linuxia_create($body, $eml, $opts);
                 die "Couldn't create ticket!" unless $ticket;
-                print "Created ticket $ticket\n";
+                my $msg;
+                if ($type eq 'rt') {
+                    $msg = "Created ticket " . $self->rt_url . "/Ticket/Display.html?id=$ticket";
+                }
+                elsif ($type eq 'teamwork') {
+                    $msg = "Created ticket " . $self->teamwork_host . "/tasklists/$ticket";
+                }
+                push @messages, $msg;
             }
             elsif ($opts->{comment}) {
-                $self->$type->linuxia_comment($ticket, $body, $eml, $opts);
+                push @messages,
+                  $self->$type->linuxia_comment($ticket, $body, $eml, $opts);
             }
             else {
-                $self->$type->linuxia_correspond($ticket, $body, $eml, $opts);
+                push @messages,
+                  $self->$type->linuxia_correspond($ticket, $body, $eml, $opts);
             }
             push @archive, $id;
 
@@ -269,6 +278,7 @@ sub _add_mails_to_ticket {
         };
     }
     $self->archive_mails(@archive);
+    return join("\n", @messages) . "\n";
 }
 
 sub archive_mails {

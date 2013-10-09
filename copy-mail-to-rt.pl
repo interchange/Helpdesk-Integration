@@ -82,29 +82,31 @@ if (!$ticket && $comment) {
 if ($ticket) {
     if ($comment) {
         if ($teamwork) {
-            $linuxia->move_mails_to_teamwork_ticket_comment($ticket);
+            print $linuxia->move_mails_to_teamwork_ticket_comment($ticket);
         }
         else {
-            $linuxia->move_mails_to_rt_ticket_comment($ticket);
+            print $linuxia->move_mails_to_rt_ticket_comment($ticket);
         }
     }
     else {
         if ($teamwork) {
-            $linuxia->move_mails_to_teamwork_ticket($ticket)
+            print $linuxia->move_mails_to_teamwork_ticket($ticket)
         }
         else {
-            $linuxia->move_mails_to_rt_ticket($ticket);
+            print $linuxia->move_mails_to_rt_ticket($ticket);
         }
     }
 }
 else {
     if ($teamwork) {
-        $linuxia->create_teamwork_ticket($queue);
+        print $linuxia->create_teamwork_ticket($queue);
     }
     else {
-        $linuxia->create_rt_ticket($queue);
+        print $linuxia->create_rt_ticket($queue);
     }
 }
+
+print "\n";
 
 sub show_help {
     print <<'HELP';

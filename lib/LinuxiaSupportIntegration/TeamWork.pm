@@ -231,7 +231,7 @@ sub linuxia_correspond {
     die "Missing todo_lists id!" unless $id;
     my $res = $self->_do_api_request(post => "/todo_lists/$id/todo_items.json",
                                      $self->_ua_params($details));
-    return;
+    return $res->header('location');
 }
 
 sub linuxia_comment {
@@ -244,7 +244,9 @@ sub linuxia_comment {
     # we can't comment on a task list, but only on a particular task.
     my $res = $self->_do_api_request(post => "/todo_items/$id/comments.json",
                                      $self->_ua_params($details));
-    return;
+    return "Comment added on " . $self->_fqhost . "/tasks/$id ("
+      . $res->header('location') . ")";
+
 }
 
 

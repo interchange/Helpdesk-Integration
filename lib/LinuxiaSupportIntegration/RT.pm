@@ -17,14 +17,16 @@ sub linuxia_create {
 
 sub linuxia_comment {
     my ($self, $ticket, $body, $eml, $opts) = @_;
-    return $self->comment(ticket_id => $ticket,
-                          message => $body);
+    $self->comment(ticket_id => $ticket,
+                   message => $body);
+    return "Comment added on ticket $ticket";
 }
 
 sub linuxia_correspond {
     my ($self, $ticket, $body, $eml, $opts) = @_;
-    return $self->correspond(ticket_id => $ticket,
-                             message => $body);
+    $self->correspond(ticket_id => $ticket,
+                      message => $body);
+    return "Correspondence added on ticket $ticket";
 
 }
 
