@@ -27,5 +27,27 @@ print $projects, "\n";
 my $res = $ua->get($projects);
 print $res->status_line, "\n";
 my $details = decode_json($res->decoded_content);
-print Dumper($details);
+
+my %projects;
+
+if ($details && $details->{projects}) {
+    foreach my $p (@{$details->{projects}}) {
+        $projects{$p->{id}} = $p->{name};
+    }
+}
+
+foreach my $pid (keys %projects) {
+    next unless defined $pid;
+    my $res = $ua->get("http://" . $host . "/projects/$pid/todo_lists.json");
+    my $details = decode_json($res->decoded_content);
+    print Dumper($details);
+    my %tasks;
+    if ($details && $details->{'todo-lists'}) {
+        foreach my $p (@{$details->{'todo-lists'}}) {
+            print Dumper($p);
+            $tasks{$p->{id}} = $p->{name};
+        }
+    }
+    print Dumper(\%tasks);
+}
 
