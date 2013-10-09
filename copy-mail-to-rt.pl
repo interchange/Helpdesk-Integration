@@ -75,8 +75,7 @@ if (!$force and @mails > $threshold) {
 if ($ticket) {
     if ($comment) {
         if ($teamwork) {
-            # $linuxia->move_mails_to_teamwork_comment($ticket, $queue)
-            die "Not implemented yet";
+            $linuxia->move_mails_to_teamwork_ticket_comment($ticket);
         }
         else {
             $linuxia->move_mails_to_rt_ticket_comment($ticket);
@@ -84,8 +83,7 @@ if ($ticket) {
     }
     else {
         if ($teamwork) {
-            # $linuxia->move_mails_to_teamwork($ticket, $queue)
-            die "Not implemented yet";
+            $linuxia->move_mails_to_teamwork_ticket($ticket)
         }
         else {
             $linuxia->move_mails_to_rt_ticket($ticket);

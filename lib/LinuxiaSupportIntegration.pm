@@ -105,7 +105,7 @@ sub imap {
             $credentials{ssl} = $ssl;
         }
         $imap = Net::IMAP::Client->new(%credentials);
-        die "Couldn't connect to " . $imap->server . " for user " . $self->imap_user
+        die "Couldn't connect to " . $self->imap_server . " for user " . $self->imap_user
           unless ($imap);
         $imap->login or die $imap->last_error;
         $self->_set_imap_obj($imap);
@@ -185,6 +185,8 @@ sub show_mails {
     return @summary;
 }
 
+# RT
+
 sub move_mails_to_rt_ticket {
     my ($self, $ticket) = @_;
     return $self->_add_mails_to_ticket(rt => $ticket);
@@ -198,6 +200,23 @@ sub move_mails_to_rt_ticket_comment {
 sub create_rt_ticket {
     my ($self, $queue) = @_;
     return $self->_add_mails_to_ticket(rt => undef, { queue => $queue });
+}
+
+# Teamwork stuff
+
+sub move_mails_to_teamwork_ticket {
+    my ($self, $ticket) = @_;
+    return $self->_add_mails_to_ticket(teamwork => $ticket);
+}
+
+sub move_mails_to_teamwork_ticket_comment {
+    my ($self, $ticket) = @_;
+    return $self->_add_mails_to_ticket(teamwork => $ticket, { comment => 1 });
+}
+
+sub create_teamwork_ticket {
+    my ($self, $queue) = @_;
+    return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue });
 }
 
 sub _add_mails_to_ticket {
@@ -238,11 +257,11 @@ sub _add_mails_to_ticket {
             elsif ($opts->{comment}) {
                 # here we could have attachments in the future
                 $self->$type->comment(ticket_id => $ticket,
-                                   message => $body);
+                                      message => $body);
             }
             else {
                 $self->$type->correspond(ticket_id => $ticket,
-                                      message => $body);
+                                         message => $body);
             }
             push @archive, $id;
 
@@ -286,13 +305,6 @@ sub imap_backup_folder_full_path {
     $name =~ s/^INBOX\Q$separator\E//; # strip the leading INBOX.
     die "No backup folder!" unless $name;
     return "INBOX" . $separator . $name;
-}
-
-# Teamwork stuff
-
-sub create_teamwork_ticket {
-    my ($self, $queue) = @_;
-    return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue });
 }
 
 
