@@ -72,6 +72,11 @@ if (!$force and @mails > $threshold) {
     exit;
 }
 
+if (!$ticket && $comment) {
+    warn "You're creating a ticket, the --comment option is ignored, bailing out";
+    exit;
+}
+
 if ($ticket) {
     if ($comment) {
         if ($teamwork) {
