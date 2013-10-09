@@ -22,7 +22,7 @@ following logic applies.
   RT Queues => TM Projects  /projects/$id
   RT Ticket => TM Task Lists /todo_lists/$id
   RT Correspondence => TM Task /todo_items/$id
-  RT Comments => TM comments on an a todo_list
+  RT Comments => TM comments on an a todo_item
 
 =head1 ACCESSORS/METHODS
 
