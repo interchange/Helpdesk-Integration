@@ -4,6 +4,7 @@ use warnings;
 
 use Net::IMAP::Client;
 use RT::Client::REST;
+use LinuxiaSupportIntegration::TeamWork;
 use Email::MIME;
 use Error qw(try otherwise);
 
@@ -36,8 +37,8 @@ has rt_password => (is => 'ro');
 has teamwork_api_key => (is => 'ro');
 has teamwork_host => (is => 'ro');
 
-# object
-has ua_obj => (is => 'rwp');
+# objects
+has teamwork_obj => (is => 'rwp');
 has imap_obj => (is => 'rwp');
 has rt_obj => (is => 'rwp');
 
@@ -52,6 +53,20 @@ has imap_backup_folder => (is => 'rw',
                            default => sub { return "RT-Archive" });
 
 has debug_mode => (is => 'rw');
+
+sub teamwork {
+    my $self = shift;
+    my $tm = $self->teamwork_obj;
+    unless ($tm) {
+        my %credentials = (
+                           api_key => $self->teamwork_api_key,
+                           host => $self->teamwork_host,
+                          );
+        $tm = LinuxiaSupportIntegration::TeamWork->new(%credentials);
+        $tm->login;
+    }
+    return $tm;
+}
 
 sub rt {
     my $self = shift;

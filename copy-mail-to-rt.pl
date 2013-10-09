@@ -18,6 +18,7 @@ my ($subject,
     $help,
     $dry_run,
     $threshold,
+    $teamwork,
     $force,
     $queue);
 
@@ -27,6 +28,7 @@ GetOptions (
             "ticket=i"  => \$ticket, # numeric
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
+            "teamwork"  => \$teamwork,
             "dry-run"   => \$dry_run,
             "force"     => \$force,
             "threshold=i" => \$threshold,
@@ -67,6 +69,12 @@ exit if $dry_run;
 if (!$force and @mails > $threshold) {
     warn "Total mail examined: " . scalar(@mails) . ". Threshold exceeded ($threshold), exiting\n";
     warn "Use --force to override or set an higher --threshold\n";
+    exit;
+}
+
+if ($teamwork) {
+    print Dumper($linuxia->teamwork->get_projects);
+    print Dumper($linuxia->teamwork->projects);
     exit;
 }
 
@@ -125,7 +133,12 @@ Options for fetching the mails:
     The mails with the from header containing the given string will be
     added to RT.
 
-Options for adding to RT
+Options for adding to RT/TeamWork
+
+  --teamwork
+
+    When this flag is set, the operation is not performed against RT
+    but against the TeamWork.pm installation.
 
   --dry-run
 
