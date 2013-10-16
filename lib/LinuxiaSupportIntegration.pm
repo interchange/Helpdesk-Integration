@@ -25,7 +25,8 @@ has imap_pass => (
                   required => 1,
                  );
 
-has imap_ssl => (is => 'ro');
+has imap_ssl => (is => 'ro',
+                 default => sub { return 1 });
 has imap_port => (is => 'ro');
 has imap_target_folder => (is => 'rw',
                            default => sub { return 'INBOX' });
