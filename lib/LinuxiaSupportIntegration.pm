@@ -5,6 +5,7 @@ use warnings;
 use Net::IMAP::Client;
 use LinuxiaSupportIntegration::TeamWork;
 use LinuxiaSupportIntegration::RT;
+use LinuxiaSupportIntegration::RT::Mail;
 use Email::MIME;
 use Error qw(try otherwise);
 
@@ -169,6 +170,30 @@ sub parse_mails {
     return @mails;
 }
 
+sub parse_rt_ticket {
+    my ($self, $ticket) = @_;
+    return unless $ticket;
+    my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
+    my @details;
+    foreach my $trx (@trxs) {
+        my $mail = $self->rt->get_transaction(parent_id => $ticket,
+                                              id => $trx,
+                                              type => 'ticket');
+        my $obj = LinuxiaSupportIntegration::RT::Mail->new(
+                                                           date => $mail->{Created},
+                                                           body => $mail->{Content},
+                                                           from => $mail->{Creator},
+                                                           subject => $mail->{Description}
+                                                          );
+        # mimic the output of parse_mails from IMAP, set index undef
+        # so we don't end moving mails around.
+        push @details, [ undef, $obj ];
+    }
+    return @details;
+
+}
+
+
 sub show_mails {
     my $self = shift;
     my @summary;
@@ -234,9 +259,21 @@ sub _add_mails_to_ticket {
     $opts ||= {};
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
+    my @mails = $self->parse_mails(@ids);
+    return $self->process_emails($type, $ticket, $opts, @mails);
+}
+
+sub move_mails_from_rt_to_teamwork_todo {
+    my ($self, $ticket, $tm_ticket) = @_;
+    my @mails = $self->parse_rt_ticket($ticket);
+    return $self->process_emails(teamwork => $tm_ticket, { comment => 1 }, @mails);
+}
+
+sub process_emails {
+    my ($self, $type, $ticket, $opts, @mails) = @_;
     my @archive;
     my @messages;
-    foreach my $mail ($self->parse_mails(@ids)) {
+    foreach my $mail (@mails) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
         die "Unexpected failure" unless $eml;
@@ -275,7 +312,14 @@ sub _add_mails_to_ticket {
             push @archive, $id;
 
         } otherwise {
-            warn "$id couldn't be processed: "  . shift . "\n";
+            my $identifier;
+            if (defined $id) {
+                $identifier = $id;
+            }
+            else {
+                $identifier = "virtual mail";
+            }
+            warn "$identifier couldn't be processed: "  . shift . "\n";
         };
     }
     $self->archive_mails(@archive);
@@ -284,6 +328,8 @@ sub _add_mails_to_ticket {
 
 sub archive_mails {
     my ($self, @ids) = @_;
+    return unless @ids;
+    @ids = grep { defined $_ } @ids;
     return unless @ids;
     $self->imap->copy([@ids], $self->imap_backup_folder_full_path);
     $self->imap->delete_message([@ids]) unless $self->debug_mode;
