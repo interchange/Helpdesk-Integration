@@ -255,7 +255,6 @@ sub create_teamwork_ticket {
 
 sub _add_mails_to_ticket {
     my ($self, $type, $ticket, $opts) = @_;
-    die "Wrong usage" unless ($type and ($type eq 'rt' or $type eq 'teamwork'));
     $opts ||= {};
     $self->prepare_backup_folder;
     my @ids = $self->list_mails;
@@ -271,6 +270,7 @@ sub move_mails_from_rt_to_teamwork_todo {
 
 sub process_emails {
     my ($self, $type, $ticket, $opts, @mails) = @_;
+    die "Wrong usage" unless ($type and ($type eq 'rt' or $type eq 'teamwork'));
     my @archive;
     my @messages;
     foreach my $mail (@mails) {
