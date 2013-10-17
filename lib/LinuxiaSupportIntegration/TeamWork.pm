@@ -339,7 +339,6 @@ get a failure and you have to use the numeric id.
 
 sub find_task_list_id {
     my ($self, $queue) = @_;
-    my $project_id = $self->project;
     my $id = $self->find_project_id($self->project);
     return unless $id;
     my $res = $self->_do_api_request(get => "/projects/$id/todo_lists.json");
@@ -363,6 +362,7 @@ id as well).
 
 sub find_project_id {
     my ($self, $project) = @_;
+    die "Missing project name" unless $project;
     my %projects = %{ $self->projects };
     # print Dumper(\%projects, $project);
     my $id = $self->_check_hash($project, \%projects);

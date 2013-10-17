@@ -47,7 +47,7 @@ has rt_password => (is => 'ro');
 
 has teamwork_api_key => (is => 'ro');
 has teamwork_host => (is => 'ro');
-has teamwork_project => (is => 'ro');
+has teamwork_project => (is => 'rw');
 
 # objects
 has teamwork_obj => (is => 'rwp');

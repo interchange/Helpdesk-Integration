@@ -20,6 +20,7 @@ my ($subject,
     $dry_run,
     $threshold,
     $teamwork,
+    $project,
     $force,
     $debug,
     $queue);
@@ -31,6 +32,7 @@ GetOptions (
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "teamwork"  => \$teamwork,
+            "project=s"   => \$project,
             "dry-run"   => \$dry_run,
             "force"     => \$force,
             "debug"     => \$debug,
@@ -44,7 +46,8 @@ my $conf_file = $ARGV[0] || getcwd() . "/conf.yml";
 
 if ($help || (! -f $conf_file)) {
     show_help();
-    exit;
+    print "Tried to use $conf_file\n";
+    exit 2;
 }
 
 
@@ -52,6 +55,10 @@ my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
 my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug, %$conf);
+
+if ($project) {
+    $linuxia->teamwork_project($project);
+}
 
 # print Dumper($linuxia->imap->folders_more);
 # $linuxia->imap->select("INBOX.RT-backup-Archive");
@@ -111,7 +118,7 @@ sub show_help {
 Usage: copy-mail-to-rt.pl [ options ] [ configuration.file.yml ]
 
 The configuration file argument is optional and defaults to "conf.yml"
-located in the same directory of this executable.
+located in the current directory.
 
 It should contain the following keys:
 
@@ -188,6 +195,11 @@ Options for adding to RT/TeamWork
     returned mails is greater than than <num> (defaults to 5), because
     if the search is too generic we will end up slurping most or all
     the INBOX. To override this you can use the --force options
+
+  --project <name>
+
+    Name or id of the current TeamWork project. Usually set in the
+    configuration file, but you can override it using this option.
 
   --force
 
