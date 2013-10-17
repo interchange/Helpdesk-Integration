@@ -10,6 +10,14 @@ use Email::MIME;
 use Error qw(try otherwise);
 use Data::Dumper;
 
+our $VERSION = '0.01';
+
+=head1 NAME
+
+LinuxiaSupportIntegration -- moving request tickets across systems
+
+=cut
+
 use Moo;
 
 has imap_server => (

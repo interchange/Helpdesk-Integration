@@ -4,11 +4,12 @@ use strict;
 use warnings;
 use utf8;
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use LinuxiaSupportIntegration;
 use YAML qw/LoadFile Dump/;
 use Getopt::Long;
 use Data::Dumper;
+use Cwd;
 binmode STDOUT, ":encoding(utf-8)";
 
 my ($ticket, $todo_list, $task, $help, $debug);
@@ -20,7 +21,7 @@ GetOptions (
             "help"      => \$help,
            );
 
-my $conf_file = $ARGV[0] || "$FindBin::Bin/conf.yml";
+my $conf_file = $ARGV[0] || getcwd() . "/conf.yml";
 
 if ($help || (! -f $conf_file)) {
     show_help();
