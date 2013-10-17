@@ -11,6 +11,9 @@ has subject => (is => 'rw',
 has date => (is => 'rw',
              default => sub { return "" });
 
+has to => (is => 'rw',
+           default => sub { return "" });
+
 sub header {
     my ($self, $header) = @_;
     # fake the header accessors;

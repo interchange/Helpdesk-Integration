@@ -19,10 +19,15 @@ some methods to create and update tasks.
 Given that it's meant to have an interface similar to RT, the
 following logic applies.
 
-  RT Queues => TM Projects  /projects/$id
-  RT Ticket => TM Task Lists /todo_lists/$id
-  RT Correspondence => TM Task /todo_items/$id
-  RT Comments => TM comments on an a todo_item
+  RT Queues =>         TM Task Lists /todo_lists/$id
+  RT Ticket =>         TM Task /todo_items/$id
+  RT Correspondence => TM comments on an a todo_item
+  RT Comments =>       TM comments on an a todo_item
+
+Please note that comment and correspondence do the same thing on TM,
+and just add a comment to a single task. Projects don't have a RT
+equivalent, so it should be set in the object.
+
 
 =head1 ACCESSORS/METHODS
 
@@ -36,6 +41,10 @@ The following parameters should be passed to the constructor:
 
 (with or without protocol). If protocol is omitted the http protocol 
 
+=item project
+
+The name or the id of the project.
+
 =back
 
 =cut
@@ -47,6 +56,8 @@ has api_key => (is => 'ro',
 
 has host => (is => 'ro',
              required => 1);
+
+has project => (is => 'rw');
 
 has auth_realm => (is => 'ro',
                    default => sub { return 'TeamworkPM' });
@@ -152,6 +163,13 @@ The following methods are provided
 An hashref with id => name pairs. This will be populated when login is
 first called.
 
+=over get_projects
+
+Return the projects for the current account. It's called on login.
+
+=back
+
+
 =cut
 
 has projects => (is => 'rw',
@@ -175,26 +193,19 @@ sub get_projects {
     }
 }
 
-# interface similar to rt.
+=head2 create_task_list($name, $description)
 
-sub linuxia_create {
-    my ($self, $body, $eml, $opts) = @_;
-    my $name = $eml->header('Subject');
-    my $description = $body;
-    my $project = $opts->{queue};
-    die "No project found!" unless $project;
-    return $self->create_task_list($project, $name, $description);
-}
+Create in the current project the task list named $name, with
+description $description. It returns the numeric id or die.
+
+=cut
 
 sub create_task_list {
-    my ($self, $project, $name, $description) = @_;
-    die "Missing coordinates! project <$project> and name <$name>"
-      unless ($project && $name);
-    my %projects = %{ $self->projects };
-
-    # look in keys and values of projects
-    my $id = $self->_check_hash($project, \%projects);
+    my ($self, $name, $description) = @_;
+    die "Missing task list  name!" unless $name;
+    my $id = $self->find_project_id($self->project);
     die "No project found" unless $id;
+
     my $details = { "todo-list" => {
                                   name => $name,
                                   description => $description
@@ -221,7 +232,16 @@ sub create_task_list {
 
 }
 
-sub linuxia_correspond {
+=head2 create_task($id, $body, $email, $opts)
+
+Create task with body $body from email object $email in todo-list with
+numeric id $id. $opts is a hashref, but it's currently unused.
+
+It returns the task id.
+
+=cut
+
+sub create_task {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
                    "todo-item" => { content => $eml->header('Subject'),
@@ -231,13 +251,39 @@ sub linuxia_correspond {
     die "Missing todo_lists id!" unless $id;
     my $res = $self->_do_api_request(post => "/todo_lists/$id/todo_items.json",
                                      $self->_ua_params($details));
-    return $res->header('location');
+    my $location = $res->header('location');
+    if ($location =~ m!([0-9]+)$!) {
+        return $1;
+    }
+    else {
+        die "No id found in $location";
+    }
 }
 
-sub linuxia_comment {
+=head2 create_comment($id, $body, $email, $opts)
+
+Create comment on task with id $id, with body $body from email object
+$email. $opts is a hashref, but it's currently unused.
+
+This is aliased as
+
+=over 4
+
+=item linuxia_correspond
+
+=item linuxia_comment
+
+=back
+
+=cut
+
+
+sub create_comment {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   comment => { body => $body }
+                   comment => { body => $body,
+                                'emailed-from' => $eml->header('From'),
+                              },
                   };
     die "Missing todo_lists id!" unless $id;
 
@@ -247,6 +293,80 @@ sub linuxia_comment {
     return "Comment added on " . $self->_fqhost . "/tasks/$id ("
       . $res->header('location') . ")";
 
+}
+
+sub linuxia_correspond {
+    my ($self, @args) = @_;
+    return $self->create_comment(@args);
+}
+
+sub linuxia_comment {
+    my ($self, @args) = @_;
+    return $self->create_comment(@args);
+}
+
+=head2 linuxia_create($body, $eml, $opts)
+
+Create a task in the $opts->{queue} task list, which will be created
+if it does not exist.
+
+It ends up calling C<create_task> and returns its returning value (the
+numeric id of the task).
+
+=cut
+
+sub linuxia_create {
+    my ($self, $body, $eml, $opts) = @_;
+    my $queue = $opts->{queue};
+    die "Missing task list name or id" unless $queue;
+    my $task_list = $self->find_task_list_id($queue)
+      || $self->create_task_list($queue, "");
+    die "No project found!" unless $task_list;
+    return $self->create_task($task_list, $body, $eml, $opts);
+}
+
+
+
+
+=head2 find_task_list_id($name)
+
+Scan the current project's task lists and return the numeric id of the
+task list with name $name. The argument may be the numeric id or the
+name of the task. If you have multiple tasks with the same name you'll
+get a failure and you have to use the numeric id.
+
+=cut
+
+sub find_task_list_id {
+    my ($self, $queue) = @_;
+    my $project_id = $self->project;
+    my $id = $self->find_project_id($self->project);
+    return unless $id;
+    my $res = $self->_do_api_request(get => "/projects/$id/todo_lists.json");
+    return unless $res;
+    my $details = decode_json($res->decoded_content);
+    # find the right task list.
+    my %task_lists;
+    foreach my $det (@{$details->{'todo-lists'}}) {
+        $task_lists{$det->{id}} = $det->{name};
+    }
+    # print Dumper(\%task_lists, $queue);
+    return $self->_check_hash($queue, \%task_lists);
+}
+
+=head2 find_project_id
+
+Get the numeric id of the current project (which could be the numeric
+id as well).
+
+=cut
+
+sub find_project_id {
+    my ($self, $project) = @_;
+    my %projects = %{ $self->projects };
+    # print Dumper(\%projects, $project);
+    my $id = $self->_check_hash($project, \%projects);
+    return $id;
 }
 
 
@@ -275,6 +395,8 @@ sub _check_hash {
             push @matches, $k;
         }
     }
+    # print Dumper(\@matches);
+
     if (@matches > 1) {
         warn "Multiple matches for $id";
         return;
@@ -283,7 +405,7 @@ sub _check_hash {
         return shift(@matches);
     }
     else {
-        warn "No matches for $id";
+        # warn "No matches for $id";
         return;
     }
 }

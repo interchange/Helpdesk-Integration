@@ -80,17 +80,13 @@ if (!$ticket && $comment) {
 }
 
 if ($ticket) {
-    if ($comment) {
-        if ($teamwork) {
-            print $linuxia->move_mails_to_teamwork_ticket_comment($ticket);
-        }
-        else {
-            print $linuxia->move_mails_to_rt_ticket_comment($ticket);
-        }
+    if ($teamwork) {
+        # teamwork doesn't care about the --comment switch
+        print $linuxia->move_mails_to_teamwork_ticket($ticket); 
     }
     else {
-        if ($teamwork) {
-            print $linuxia->move_mails_to_teamwork_ticket($ticket)
+        if ($comment) {
+            print $linuxia->move_mails_to_rt_ticket_comment($ticket);
         }
         else {
             print $linuxia->move_mails_to_rt_ticket($ticket);
@@ -138,6 +134,7 @@ It should contain the following keys:
   # Team work credentials, still unused
   teamwork_host: myhost.no.proto
   teamwork_api_key: xxxxxxx
+  teamwork_project: Test project
   
 Options for fetching the mails:
 
@@ -167,18 +164,22 @@ Options for adding to RT/TeamWork
   --ticket '<id>'
 
     Add the mail to the given ticket. If none is provided, a new
-    ticket will be created.
+    ticket will be created using the first mail, and the other will be
+    added as correspondence (for RT) or as comment (for Teamwork).
 
   --comment
 
     If the comment flag is set, the mails will be added as comment
     when adding a mail to ticket. By default correspondence is added.
     This option is ignored if a new ticket is being created from the
-    email.
+    email in RT or if you passed the --teamwork flag (mails are
+    comments).
 
   --queue '<string>'
 
-    The target queue. Defaults to "General".
+    The target queue. Defaults to "General". For RT, the queue must
+    exist. For Teamwork, if it doesn't exist the task list will be
+    created in the project specified in the configuration.
 
   --threshold <num>
 

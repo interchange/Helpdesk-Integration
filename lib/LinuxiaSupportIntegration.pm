@@ -8,6 +8,7 @@ use LinuxiaSupportIntegration::RT;
 use LinuxiaSupportIntegration::RT::Mail;
 use Email::MIME;
 use Error qw(try otherwise);
+use Data::Dumper;
 
 use Moo;
 
@@ -38,6 +39,7 @@ has rt_password => (is => 'ro');
 
 has teamwork_api_key => (is => 'ro');
 has teamwork_host => (is => 'ro');
+has teamwork_project => (is => 'ro');
 
 # objects
 has teamwork_obj => (is => 'rwp');
@@ -63,6 +65,7 @@ sub teamwork {
         my %credentials = (
                            api_key => $self->teamwork_api_key,
                            host => $self->teamwork_host,
+                           project => $self->teamwork_project,
                           );
         $tm = LinuxiaSupportIntegration::TeamWork->new(%credentials);
         $tm->login;
@@ -156,6 +159,14 @@ sub list_mails {
 }
 
 
+=head2 parse_mails(@ids)
+
+Given the mail ids in the list passed as argument, retrive them and
+return a list of arrayrefs, where the first element is the numeric id
+of the IMAP mail, and the second is an L<Email::MIME> object.
+
+=cut
+
 sub parse_mails {
     my ($self, @ids) = @_;
     unless (@ids) {
@@ -170,37 +181,83 @@ sub parse_mails {
     return @mails;
 }
 
+=head2 parse_rt_ticket($ticket)
+
+Access via REST the ticket $ticket and return a list of arrayrefs.
+Each arrayref has two elements: the first is always undef, the second
+is a L<LinuxiaSupportIntegration::RT::Mail> object, which mimic the
+L<Email::MIME> object. In this way C<parse_mails> or
+C<parse_rt_ticket> return fully compatible lists.
+
+The first element is undef because we don't want to move around mails
+when we look into RT.
+
+=cut
+
 sub parse_rt_ticket {
     my ($self, $ticket) = @_;
     return unless $ticket;
     my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
-    my @details;
+    my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
+    my %ticket_details = (
+                          date => $fullticket->{Created},
+                          from => $fullticket->{Creator},
+                          subject => $fullticket->{Subject},
+                          body => "RT ticket $ticket in queue $fullticket->{Queue}",
+                         );
+    my @details = (LinuxiaSupportIntegration::RT::Mail->new(%ticket_details));
+    # probably here we want to take the first mail and dump it as body
+    # of the ticket creation action.
     foreach my $trx (@trxs) {
         my $mail = $self->rt->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
+        # print Dumper($mail);
         my $obj = LinuxiaSupportIntegration::RT::Mail->new(
                                                            date => $mail->{Created},
                                                            body => $mail->{Content},
                                                            from => $mail->{Creator},
                                                            subject => $mail->{Description}
                                                           );
-        # mimic the output of parse_mails from IMAP, set index undef
-        # so we don't end moving mails around.
-        push @details, [ undef, $obj ];
+        push @details, $obj;
     }
-    return @details;
-
+    # print Dumper(\@details);
+    # mimic the output of parse_mails from IMAP, set index undef
+    # so we don't end moving mails around.
+    return map { [ undef, $_ ] } @details;
 }
 
 
+=head2 show_ticket_mails
+
+List the mails found in the RT ticket $id;
+
+=cut
+
+
+sub show_ticket_mails {
+    my ($self, $ticket) = @_;
+    return $self->_format_mails($self->parse_rt_ticket($ticket));
+}
+
+=head2 show_mails
+
+List the summary of the mails found in IMAP.
+
+=cut
+
 sub show_mails {
     my $self = shift;
+    return $self->_format_mails($self->parse_mails);
+}
+
+sub _format_mails {
+    my ($self, @mails) = @_;
     my @summary;
-    foreach my $mail ($self->parse_mails) {
+    foreach my $mail (@mails) {
         push @summary,
           join(" ",
-               $mail->[0],
+               $mail->[0] // "virtual mail",
                ".",
                From => $mail->[1]->header("From"),
                To   => $mail->[1]->header("To"),
@@ -243,11 +300,6 @@ sub move_mails_to_teamwork_ticket {
     return $self->_add_mails_to_ticket(teamwork => $ticket);
 }
 
-sub move_mails_to_teamwork_ticket_comment {
-    my ($self, $ticket) = @_;
-    return $self->_add_mails_to_ticket(teamwork => $ticket, { comment => 1 });
-}
-
 sub create_teamwork_ticket {
     my ($self, $queue) = @_;
     return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue });
@@ -262,10 +314,17 @@ sub _add_mails_to_ticket {
     return $self->process_emails($type, $ticket, $opts, @mails);
 }
 
-sub move_mails_from_rt_to_teamwork_todo {
+sub move_rt_ticket_to_teamwork_task {
     my ($self, $ticket, $tm_ticket) = @_;
     my @mails = $self->parse_rt_ticket($ticket);
-    return $self->process_emails(teamwork => $tm_ticket, { comment => 1 }, @mails);
+    # print Dumper(\@mails);
+    return $self->process_emails(teamwork => $tm_ticket, {}, @mails);
+}
+
+sub move_rt_ticket_to_teamwork_task_list {
+    my ($self, $ticket, $task_list) = @_;
+    my @mails = $self->parse_rt_ticket($ticket);
+    return $self->process_emails(teamwork => undef, { queue => $task_list }, @mails);        
 }
 
 sub process_emails {
@@ -297,7 +356,7 @@ sub process_emails {
                     $msg = "Created ticket " . $self->rt_url . "/Ticket/Display.html?id=$ticket";
                 }
                 elsif ($type eq 'teamwork') {
-                    $msg = "Created ticket " . $self->teamwork_host . "/tasklists/$ticket";
+                    $msg = "Created ticket " . $self->teamwork_host . "/tasks/$ticket";
                 }
                 push @messages, $msg;
             }
@@ -325,6 +384,16 @@ sub process_emails {
     $self->archive_mails(@archive);
     return join("\n", @messages) . "\n";
 }
+
+=head2 archive_mails(@ids)
+
+Given the ids passed as arguments, copy those in the IMAP backup
+folder.
+
+The list is purged by eventual undefined values (when pulling from RT
+the argument will be a list of undef).
+
+=cut
 
 sub archive_mails {
     my ($self, @ids) = @_;

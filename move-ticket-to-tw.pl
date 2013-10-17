@@ -11,11 +11,12 @@ use Getopt::Long;
 use Data::Dumper;
 binmode STDOUT, ":encoding(utf-8)";
 
-my ($ticket, $todo_list, $help, $debug);
+my ($ticket, $todo_list, $task, $help, $debug);
 
 GetOptions (
             "ticket=i"  => \$ticket, # numeric
-            "todo-list=i" => \$todo_list,
+            "todo-list=s" => \$todo_list,
+            "task=s" => \$task,
             "help"      => \$help,
            );
 
@@ -32,7 +33,15 @@ die "Bad configuration file $conf_file" unless $conf;
 
 my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug, %$conf);
 
-$linuxia->move_mails_from_rt_to_teamwork_todo($ticket, $todo_list);
+my @mails = $linuxia->show_ticket_mails($ticket);
+print join("\n", @mails);
+
+if ($task) {
+    print $linuxia->move_rt_ticket_to_teamwork_task($ticket, $task);
+}
+else {
+    print $linuxia->move_rt_ticket_to_teamwork_task_list($ticket, $todo_list);
+}
 
 sub show_help {
     print <<EOF

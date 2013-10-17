@@ -8,3 +8,4 @@ rt_user: pinco
 rt_password: pallino
 teamwork_api_key: xxxxxxx
 teamwork_host: myhost.no.proto
+teamwork_project: Linuxia testing
