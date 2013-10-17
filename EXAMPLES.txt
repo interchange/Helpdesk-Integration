@@ -1,0 +1,28 @@
+# the following examples have all the --debug flag set, which prevents
+#  the removing of the mails from the inbox
+
+# list all the mails from marco and exit
+./bin/copy-mail-to-rt.pl --debug --from marco --dry-run
+
+# copy the mails from marco in a new ticket under General
+./bin/copy-mail-to-rt.pl --debug --from marco --queue "General"
+
+# copy the mails from marco in the TW task list "New thing" (and
+# create it if needed)
+./bin/copy-mail-to-rt.pl --debug --from marco --teamwork --queue "New thing"
+
+# copy the mails from marco in the RT ticket 2
+./bin/copy-mail-to-rt.pl --debug --from marco --ticket 2
+
+# copy the  mails from marco in the TW task 1159403 as comments
+./bin/copy-mail-to-rt.pl --debug --from marco --teamwork --ticket 1159403
+
+# copy the mails from marco in the ticket 2 as comment
+./bin/copy-mail-to-rt.pl --debug --from marco --ticket 2 --comment
+
+# copy the RT ticket 1 in the TW task "This is a test" (and create it
+# if needed).
+./bin/move-ticket-to-tw.pl --ticket 1 --todo-list "This is a test"
+
+# copy the RT ticket 1 in the TW task 1159613 as comments
+./bin/move-ticket-to-tw.pl --ticket 1 --task 1159613
