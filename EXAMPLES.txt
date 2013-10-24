@@ -20,9 +20,17 @@
 # copy the mails from marco in the ticket 2 as comment
 ./bin/copy-mail-to-rt.pl --debug --from marco --ticket 2 --comment
 
+# copy the mails in a new RT ticket setting the subject
+./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj"
+
+# same for teamwork
+./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --teamwork
+
+
 # copy the RT ticket 1 in the TW task "This is a test" (and create it
 # if needed).
 ./bin/move-ticket-to-tw.pl --ticket 1 --todo-list "This is a test"
 
 # copy the RT ticket 1 in the TW task 1159613 as comments
 ./bin/move-ticket-to-tw.pl --ticket 1 --task 1159613
+

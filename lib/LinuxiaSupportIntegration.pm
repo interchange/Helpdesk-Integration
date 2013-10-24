@@ -297,8 +297,10 @@ sub move_mails_to_rt_ticket_comment {
 }
 
 sub create_rt_ticket {
-    my ($self, $queue) = @_;
-    return $self->_add_mails_to_ticket(rt => undef, { queue => $queue });
+    my ($self, $queue, $subject) = @_;
+    return $self->_add_mails_to_ticket(rt => undef, { queue => $queue,
+                                                      subject => $subject,
+                                                    });
 }
 
 # Teamwork stuff
@@ -309,8 +311,10 @@ sub move_mails_to_teamwork_ticket {
 }
 
 sub create_teamwork_ticket {
-    my ($self, $queue) = @_;
-    return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue });
+    my ($self, $queue, $subject) = @_;
+    return $self->_add_mails_to_ticket(teamwork => undef, { queue => $queue,
+                                                            subject => $subject,
+                                                          });
 }
 
 sub _add_mails_to_ticket {

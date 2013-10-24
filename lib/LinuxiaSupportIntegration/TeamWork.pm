@@ -244,7 +244,7 @@ It returns the task id.
 sub create_task {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   "todo-item" => { content => $eml->header('Subject'),
+                   "todo-item" => { content => $opts->{subject} || $eml->header('Subject'),
                                     description => $body,
                                   }
                   };

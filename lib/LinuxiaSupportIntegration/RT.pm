@@ -9,7 +9,7 @@ sub linuxia_create {
                                set => {
                                        Queue => $opts->{queue} || "General",
                                        Requestor => $eml->header('From'),
-                                       Subject => $eml->header('Subject'),
+                                       Subject => $opts->{subject} || $eml->header('Subject'),
                                       },
                                text => $body);
     return $ticket;

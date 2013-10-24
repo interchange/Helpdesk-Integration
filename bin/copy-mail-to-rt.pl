@@ -23,6 +23,7 @@ my ($subject,
     $project,
     $force,
     $debug,
+    $bts_subject,
     $queue);
 
 GetOptions (
@@ -38,6 +39,7 @@ GetOptions (
             "debug"     => \$debug,
             "threshold=i" => \$threshold,
             "help"      => \$help,
+            "bts-subject=s" => \$bts_subject,
            );
 
 $threshold ||= 5;
@@ -103,10 +105,10 @@ if ($ticket) {
 }
 else {
     if ($teamwork) {
-        print $linuxia->create_teamwork_ticket($queue);
+        print $linuxia->create_teamwork_ticket($queue, $bts_subject);
     }
     else {
-        print $linuxia->create_rt_ticket($queue);
+        print $linuxia->create_rt_ticket($queue, $bts_subject);
     }
 }
 
@@ -157,6 +159,11 @@ Options for fetching the mails:
     added to RT.
 
 Options for adding to RT/TeamWork
+
+  --bts-subject "<New subject>"
+
+    Overwrite the subject email when setting the subject of the
+    ticket. This applies for RT and TW.
 
   --teamwork
 
