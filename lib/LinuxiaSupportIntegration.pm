@@ -184,15 +184,25 @@ sub parse_mails {
     foreach my $id (@ids) {
         my $body = $self->imap->get_rfc822_body($id);
         my $email = Email::MIME->new($$body);
+        my %details = (
+                       date => $email->header("Date"),
+                       from => $email->header("From"),
+                       to   => $email->header("To"),
+                       subject => $email->header("Subject"),
+                      );
         if (my @parts = $email->subparts) {
             foreach my $p (@parts) {
                 if ($p->content_type =~ m/text\/plain/) {
-                    $email = $p;
+                    $details{body} = $p->body_str;
                     last;
                 }
             }
         }
-        push @mails, [$id => $email ];
+        else {
+            $details{body} = $email->body_str;
+        }
+        my $simulated = LinuxiaSupportIntegration::RT::Mail->new(%details);
+        push @mails, [$id => $simulated ];
     }
     $self->_set_current_mail_objects(\@mails);
     return @mails;
