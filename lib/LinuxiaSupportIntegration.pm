@@ -183,7 +183,16 @@ sub parse_mails {
     my @mails;
     foreach my $id (@ids) {
         my $body = $self->imap->get_rfc822_body($id);
-        push @mails, [$id => Email::MIME->new($$body) ];
+        my $email = Email::MIME->new($$body);
+        if (my @parts = $email->subparts) {
+            foreach my $p (@parts) {
+                if ($p->content_type =~ m/text\/plain/) {
+                    $email = $p;
+                    last;
+                }
+            }
+        }
+        push @mails, [$id => $email ];
     }
     $self->_set_current_mail_objects(\@mails);
     return @mails;
