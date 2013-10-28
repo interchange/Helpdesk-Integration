@@ -77,6 +77,7 @@ sub teamwork {
                           );
         $tm = LinuxiaSupportIntegration::TeamWork->new(%credentials);
         $tm->login;
+        $self->_set_teamwork_obj($tm);
     }
     return $tm;
 }
