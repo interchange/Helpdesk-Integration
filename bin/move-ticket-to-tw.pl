@@ -36,6 +36,7 @@ die "Bad configuration file $conf_file" unless $conf;
 
 unless ($ticket) {
     show_help();
+    print "Missing ticket number!\n";
     exit 2;
 }
 
