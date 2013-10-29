@@ -418,6 +418,9 @@ sub process_emails {
             else {
                 $identifier = "virtual mail";
             }
+            if ($type eq 'teamwork') {
+                $identifier .= " (TW project '" . $self->$type->project . "') :";
+            }
             warn "$identifier couldn't be processed: "  . shift . "\n";
         };
     }
