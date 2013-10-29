@@ -234,7 +234,7 @@ sub parse_rt_ticket {
     my %ticket_details = (
                           date => $fullticket->{Created},
                           from => $fullticket->{Creator},
-                          subject => $fullticket->{Subject},
+                          subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
                          );
     my @details = (LinuxiaSupportIntegration::RT::Mail->new(%ticket_details));
@@ -249,7 +249,7 @@ sub parse_rt_ticket {
                                                            date => $mail->{Created},
                                                            body => $mail->{Content},
                                                            from => $mail->{Creator},
-                                                           subject => $mail->{Description}
+                                                           subject => " #$ticket: " . $mail->{Description},
                                                           );
         push @details, $obj;
     }
