@@ -244,7 +244,11 @@ sub parse_rt_ticket {
         my $mail = $self->rt->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
-        # print Dumper($mail);
+        if ($mail->{Type} eq 'Status' and
+            (!$mail->{Content} or
+             $mail->{Content} eq 'This transaction appears to have no content')) {
+            next;
+        }
         my $obj = LinuxiaSupportIntegration::RT::Mail->new(
                                                            date => $mail->{Created},
                                                            body => $mail->{Content},
