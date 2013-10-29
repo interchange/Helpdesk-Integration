@@ -20,6 +20,10 @@ LinuxiaSupportIntegration -- moving request tickets across systems
 
 use Moo;
 
+=head1 ACCESSORS
+
+=cut
+
 has imap_server => (
                     is => 'ro',
                     required => 1,
@@ -364,6 +368,10 @@ sub process_emails {
     die "Wrong usage" unless ($type and ($type eq 'rt' or $type eq 'teamwork'));
     my @archive;
     my @messages;
+    # test if we can get a valid object for rt or teamwork
+    my $test = $self->$type;
+    die "Cannot retrieve $type object" unless $test;
+
     foreach my $mail (@mails) {
         my $id = $mail->[0];
         my $eml = $mail->[1];

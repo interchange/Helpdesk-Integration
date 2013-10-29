@@ -165,7 +165,9 @@ first called.
 
 =over get_projects
 
-Return the projects for the current account. It's called on login.
+Return the projects for the current account. It's called on login and
+also checks if the current project set in the object is valid,
+throwing an exception otherwise.
 
 =back
 
@@ -188,6 +190,8 @@ sub get_projects {
         }
     }
     $self->projects(\%projects);
+    # check if we have a valid project inside the object
+    $self->find_project_id($self->project);
     if (%projects) {
         return $details->{projects};
     }
@@ -340,7 +344,6 @@ get a failure and you have to use the numeric id.
 sub find_task_list_id {
     my ($self, $queue) = @_;
     my $id = $self->find_project_id($self->project);
-    return unless $id;
     my $res = $self->_do_api_request(get => "/projects/$id/todo_lists.json");
     return unless $res;
     my $details = decode_json($res->decoded_content);
@@ -358,6 +361,8 @@ sub find_task_list_id {
 Get the numeric id of the current project (which could be the numeric
 id as well).
 
+If the project is not found, an exception is thrown.
+
 =cut
 
 sub find_project_id {
@@ -366,7 +371,16 @@ sub find_project_id {
     my %projects = %{ $self->projects };
     # print Dumper(\%projects, $project);
     my $id = $self->_check_hash($project, \%projects);
-    return $id;
+    my @avail_projects;
+    if (defined $id) {
+        return $id;
+    }
+    else {
+        foreach my $k (keys %projects) {
+            push @avail_projects, " - " . $projects{$k} . " (id $k)";
+        }
+        die qq{No project "$project" found in:\n} . join ("\n", @avail_projects) . "\n";
+    }
 }
 
 

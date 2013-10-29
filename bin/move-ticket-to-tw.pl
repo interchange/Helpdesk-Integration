@@ -45,6 +45,9 @@ if ($project) {
     $linuxia->teamwork_project($project);
 }
 
+# test if we can retrieve the teamwork object, it would die if not ok
+$linuxia->teamwork;
+
 my @mails = $linuxia->show_ticket_mails($ticket);
 print join("\n", @mails);
 

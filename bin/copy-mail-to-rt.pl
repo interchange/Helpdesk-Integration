@@ -62,6 +62,11 @@ if ($project) {
     $linuxia->teamwork_project($project);
 }
 
+# see if we can retrieve the teamwork object
+if ($teamwork) {
+    $linuxia->teamwork;
+}
+
 # print Dumper($linuxia->imap->folders_more);
 # $linuxia->imap->select("INBOX.RT-backup-Archive");
 # print Dumper($linuxia->imap->search("ALL"));
