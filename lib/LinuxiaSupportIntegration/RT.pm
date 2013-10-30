@@ -8,8 +8,8 @@ sub linuxia_create {
     my $ticket = $self->create(type => 'ticket',
                                set => {
                                        Queue => $opts->{queue} || "General",
-                                       Requestor => $eml->header('From'),
-                                       Subject => $opts->{subject} || $eml->header('Subject'),
+                                       Requestor => $eml->from,
+                                       Subject => $opts->{subject} || $eml->subject,
                                       },
                                text => $body);
     return $ticket;

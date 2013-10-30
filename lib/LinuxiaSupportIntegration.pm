@@ -5,7 +5,7 @@ use warnings;
 use Net::IMAP::Client;
 use LinuxiaSupportIntegration::TeamWork;
 use LinuxiaSupportIntegration::RT;
-use LinuxiaSupportIntegration::RT::Mail;
+use LinuxiaSupportIntegration::Ticket;
 use Email::MIME;
 use Error qw(try otherwise);
 use Data::Dumper;
@@ -206,7 +206,7 @@ sub parse_mails {
         else {
             $details{body} = $email->body_str;
         }
-        my $simulated = LinuxiaSupportIntegration::RT::Mail->new(%details);
+        my $simulated = LinuxiaSupportIntegration::Ticket->new(%details);
         push @mails, [$id => $simulated ];
     }
     $self->_set_current_mail_objects(\@mails);
@@ -237,7 +237,7 @@ sub parse_rt_ticket {
                           subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
                          );
-    my @details = (LinuxiaSupportIntegration::RT::Mail->new(%ticket_details));
+    my @details = (LinuxiaSupportIntegration::Ticket->new(%ticket_details));
     # probably here we want to take the first mail and dump it as body
     # of the ticket creation action.
     foreach my $trx (@trxs) {
@@ -249,12 +249,12 @@ sub parse_rt_ticket {
              $mail->{Content} eq 'This transaction appears to have no content')) {
             next;
         }
-        my $obj = LinuxiaSupportIntegration::RT::Mail->new(
-                                                           date => $mail->{Created},
-                                                           body => $mail->{Content},
-                                                           from => $mail->{Creator},
-                                                           subject => " #$ticket: " . $mail->{Description},
-                                                          );
+        my $obj = LinuxiaSupportIntegration::Ticket->new(
+                                                         date => $mail->{Created},
+                                                         body => $mail->{Content},
+                                                         from => $mail->{Creator},
+                                                         subject => " #$ticket: " . $mail->{Description},
+                                                        );
         push @details, $obj;
     }
     # print Dumper(\@details);
@@ -294,22 +294,9 @@ sub _format_mails {
         push @summary,
           join(" ",
                $mail->[0] // "virtual mail",
-               ".",
-               From => $mail->[1]->header("From"),
-               To   => $mail->[1]->header("To"),
-               $mail->[1]->header("Date"),
-               "\nSubject: " . $mail->[1]->header("Subject"),
-               "\n" . $self->_cut_mail($mail->[1]->body_str) . "\n");
+               ".", $mail->[1]->summary);
     }
     return @summary;
-}
-
-sub _cut_mail {
-    my ($self, $body) = @_;
-    my $beginning = substr($body, 0, 50);
-    $beginning =~ s/\r?\n/ /gs;
-    return $beginning;
-    
 }
 
 # RT
@@ -385,11 +372,7 @@ sub process_emails {
         # (only cc and attachments), so it should be OK to inject
         # these info in the body
         try {
-            my $body = "Mail from " . $eml->header('From')
-              . " on " . $eml->header('Date')
-                . "\n" . ($eml->header('Subject') || "")
-                  . "\n" . $eml->body_str;
-
+            my $body = $eml->as_string;
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
             if (!$ticket) {

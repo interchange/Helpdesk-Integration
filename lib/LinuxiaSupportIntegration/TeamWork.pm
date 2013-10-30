@@ -248,7 +248,7 @@ It returns the task id.
 sub create_task {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   "todo-item" => { content => $opts->{subject} || $eml->header('Subject'),
+                   "todo-item" => { content => $opts->{subject} || $eml->subject,
                                     description => $body,
                                   }
                   };
@@ -286,7 +286,7 @@ sub create_comment {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
                    comment => { body => $body,
-                                'emailed-from' => $eml->header('From'),
+                                'emailed-from' => $eml->from,
                               },
                   };
     die "Missing todo_lists id!" unless $id;
