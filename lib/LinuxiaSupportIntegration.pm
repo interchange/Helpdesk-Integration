@@ -186,6 +186,7 @@ sub parse_mails {
         @ids = $self->list_mails;
     }
     my @mails;
+    my @attachments;
     foreach my $id (@ids) {
         my $body = $self->imap->get_rfc822_body($id);
         my $email = Email::MIME->new($$body);
@@ -198,15 +199,27 @@ sub parse_mails {
         if (my @parts = $email->subparts) {
             foreach my $p (@parts) {
                 if ($p->content_type =~ m/text\/plain/) {
-                    $details{body} = $p->body_str;
-                    last;
+                    $details{body} .= $p->body_str;
+                }
+                elsif ($p->content_type =~ m/text\/html/) {
+                    # unclear what to do with it.
+                }
+                else {
+                    my $filename = $p->filename;
+                    my $body = $p->body;
+                    unless (($filename =~ m/^\./)
+                        or ($filename =~ m!/!)) {
+                        push @attachments, [ $filename, $body ];
+                    }
                 }
             }
         }
         else {
             $details{body} = $email->body_str;
         }
+        $details{attachments} = \@attachments;
         my $simulated = LinuxiaSupportIntegration::Ticket->new(%details);
+        print $simulated->attachments_filenames;
         push @mails, [$id => $simulated ];
     }
     $self->_set_current_mail_objects(\@mails);
@@ -386,6 +399,10 @@ sub process_emails {
                     $msg = "Created ticket " . $self->teamwork_host . "/tasks/$ticket";
                 }
                 push @messages, $msg;
+                if (my @attachments = $eml->attachments_filenames) {
+                    $self->$type->linuxia_correspond($ticket, "Attached file",
+                                                     $eml, $opts);
+                }
             }
             elsif ($opts->{comment}) {
                 push @messages,

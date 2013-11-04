@@ -18,6 +18,8 @@ The following accessors are read/write and should be self-explanatory
 
 =item date
 
+=item attachments
+
 =item to
 
 =back
@@ -25,6 +27,9 @@ The following accessors are read/write and should be self-explanatory
 =cut
 
 use Moo;
+use File::Temp;
+use File::Spec;
+use File::Slurp;
 
 has body => (is => 'rw',
              default => sub { return "" });
@@ -35,8 +40,14 @@ has subject => (is => 'rw',
 has date => (is => 'rw',
              default => sub { return "" });
 
+has attachments => (is => 'rw',
+                   default => sub { return [] });
+
 has to => (is => 'rw',
            default => sub { return "" });
+
+has _tmpdir => (is => 'rw',
+                default => sub { return File::Temp->newdir() });
 
 =head1 METHODS
 
@@ -78,9 +89,20 @@ sub _short_body {
     # remove the last non-whitespace chars
     $beginning =~ s/[^ ]+$//s;
     return $beginning;
-
 }
 
+sub attachments_filenames {
+    my $self = shift;
+    my @strings = @{ $self->attachments };
+    my $dir = $self->_tmpdir->dirname;
+    my @filenames;
+    foreach my $att (@strings) {
+        my $dest = File::Spec->catfile($dir, $att->[0]);
+        die "Cannot write $dest" unless (write_file($dest, $att->[1]));
+        push @filenames, $dest;
+    }
+    return @filenames;
+}
 
 
 1;
