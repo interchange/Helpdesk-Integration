@@ -281,6 +281,27 @@ This is aliased as
 
 =cut
 
+sub upload_files {
+    my ($self, @files) = @_;
+    my @attachments;
+    foreach my $att (@files) {
+        die "Missing file $att" unless -f $att;
+        # send up the file
+        my $res = $self->_do_api_request(post => "/pendingfiles.json",
+                                         Content_Type => 'multipart/form-data',
+                                         Content => [ file => [$att]]);
+        my $ref = decode_json($res->decoded_content);
+        if ($ref && $ref->{pendingFile}->{ref}) {
+            push @attachments, $ref->{pendingFile}->{ref};
+            print "Uploaded file with " . $res->decoded_content . " response\n";
+        }
+        else {
+            warn "Failure uploading $att\n";
+        }
+    };
+    return @attachments;
+}
+
 
 sub create_comment {
     my ($self, $id, $body, $eml, $opts) = @_;
@@ -291,18 +312,7 @@ sub create_comment {
                   };
     die "Missing todo_lists id!" unless $id;
 
-    my @attachments;
-    foreach my $att ($eml->attachments_filenames) {
-        die "Missing file $att" unless -f $att;
-        # send up the file
-        my $res = $self->_do_api_request(post => "/pendingfiles.json",
-                                         Content_Type => 'multipart/form-data',
-                                         Content => [ file => [$att]]);
-        my $ref = decode_json($res->decoded_content);
-        push @attachments, $ref->{pendingFile}->{ref};
-        print "Uploaded file with " . $res->decoded_content . " response";
-    };
-    if (@attachments) {
+    if (my @attachments = $self->upload_files($eml->attachments_filenames)) {
         $details->{comment}->{pendingFileAttachments} = join(",", @attachments);
     }
     # we can't comment on a task list, but only on a particular task.
