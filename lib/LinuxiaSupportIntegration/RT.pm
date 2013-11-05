@@ -51,6 +51,16 @@ when we look into RT.
 =cut
 
 
+sub _message_type_should_be_relayed {
+    my ($self, $type) = @_;
+    my %good = (
+                Create => 1,
+                Correspond => 1,
+                Comment => 1,
+               );
+    return $good{$type};
+}
+
 sub parse_messages {
     my ($self, %params) = @_;
     my $ticket = $params{ticket};
@@ -70,11 +80,7 @@ sub parse_messages {
         my $mail = $self->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
-        if ($mail->{Type} eq 'Status' and
-            (!$mail->{Content} or
-             $mail->{Content} eq 'This transaction appears to have no content')) {
-            next;
-        }
+        next unless $self->_message_type_should_be_relayed($mail->{Type});
         my $obj = LinuxiaSupportIntegration::Ticket->new(
                                                          date => $mail->{Created},
                                                          body => $mail->{Content},
