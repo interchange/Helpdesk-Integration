@@ -291,6 +291,19 @@ sub create_comment {
                   };
     die "Missing todo_lists id!" unless $id;
 
+    my @attachments;
+    foreach my $att ($eml->attachments_filenames) {
+        die "Missing file $att" unless -f $att;
+        # send up the file
+        my $file = read_file($att);
+        my $params = { file => $file };
+
+        my $res = $self->_do_api_request(post => "/pendingfiles.json",
+                                         Content_Type => 'multipart/form-data',
+                                         Content => [ file => [$att]]);
+        print "Uploaded file with " . $res->decoded_content . " response";
+    };
+    
     # we can't comment on a task list, but only on a particular task.
     my $res = $self->_do_api_request(post => "/todo_items/$id/comments.json",
                                      $self->_ua_params($details));
