@@ -141,6 +141,16 @@ when we look into RT.
 
 =cut
 
+sub _message_type_should_be_relayed {
+    my ($self, $type) = @_;
+    my %good = (
+                Create => 1,
+                Correspond => 1,
+                Comment => 1,
+               );
+    return $good{$type};
+}
+
 sub parse_rt_ticket {
     my ($self, $ticket) = @_;
     return $self->rt->parse_messages(ticket => $ticket);
