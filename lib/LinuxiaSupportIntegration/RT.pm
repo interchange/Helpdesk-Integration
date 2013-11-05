@@ -89,6 +89,11 @@ sub parse_messages {
     return map { [ undef, $_ ] } @details;
 }
 
+sub archive_messages {
+    # no op
+    return;
+}
+
 
 1;
 

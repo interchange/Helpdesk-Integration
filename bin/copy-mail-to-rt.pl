@@ -77,7 +77,7 @@ unless ($subject || $from) {
     $dry_run = 1;
 }
 
-$linuxia->mail_search_params(subject => $subject, from => $from);
+$linuxia->imap->mail_search_params(subject => $subject, from => $from);
 
 my @mails = $linuxia->show_mails;
 print join("\n", @mails);
