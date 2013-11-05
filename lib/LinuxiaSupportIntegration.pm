@@ -267,7 +267,6 @@ sub parse_rt_ticket {
         my $mail = $self->rt->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
-        print "\n", Dumper($mail), "\n";
         next unless $self->_message_type_should_be_relayed($mail->{Type});
         my $obj = LinuxiaSupportIntegration::Ticket->new(
                                                          date => $mail->{Created},
