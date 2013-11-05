@@ -18,14 +18,18 @@ sub linuxia_create {
 sub linuxia_comment {
     my ($self, $ticket, $body, $eml, $opts) = @_;
     $self->comment(ticket_id => $ticket,
-                   message => $body);
+                   message => $body,
+                   attachments => [ $eml->attachments_filenames ],
+                  );
     return "Comment added on ticket $ticket";
 }
 
 sub linuxia_correspond {
     my ($self, $ticket, $body, $eml, $opts) = @_;
     $self->correspond(ticket_id => $ticket,
-                      message => $body);
+                      message => $body,
+                      attachments => [ $eml->attachments_filenames ],
+                     );
     return "Correspondence added on ticket $ticket";
 
 }
