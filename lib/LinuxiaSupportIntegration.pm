@@ -241,39 +241,7 @@ when we look into RT.
 
 sub parse_rt_ticket {
     my ($self, $ticket) = @_;
-    return unless $ticket;
-    my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
-    my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
-    my %ticket_details = (
-                          date => $fullticket->{Created},
-                          from => $fullticket->{Creator},
-                          subject => " #$ticket : " . $fullticket->{Subject},
-                          body => "RT ticket $ticket in queue $fullticket->{Queue}",
-                         );
-    my @details = (LinuxiaSupportIntegration::Ticket->new(%ticket_details));
-    # probably here we want to take the first mail and dump it as body
-    # of the ticket creation action.
-    foreach my $trx (@trxs) {
-        my $mail = $self->rt->get_transaction(parent_id => $ticket,
-                                              id => $trx,
-                                              type => 'ticket');
-        if ($mail->{Type} eq 'Status' and
-            (!$mail->{Content} or
-             $mail->{Content} eq 'This transaction appears to have no content')) {
-            next;
-        }
-        my $obj = LinuxiaSupportIntegration::Ticket->new(
-                                                         date => $mail->{Created},
-                                                         body => $mail->{Content},
-                                                         from => $mail->{Creator},
-                                                         subject => " #$ticket: " . $mail->{Description},
-                                                        );
-        push @details, $obj;
-    }
-    # print Dumper(\@details);
-    # mimic the output of parse_mails from IMAP, set index undef
-    # so we don't end moving mails around.
-    return map { [ undef, $_ ] } @details;
+    return $self->rt->parse_messages(ticket => $ticket);
 }
 
 
