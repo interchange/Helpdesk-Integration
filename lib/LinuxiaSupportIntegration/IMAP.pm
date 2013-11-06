@@ -114,7 +114,7 @@ sub list_mails {
 }
 
 
-=head2 parse_mails(@ids)
+=head2 parse_messages(@ids)
 
 Given the mail ids in the list passed as argument, retrive them and
 return a list of arrayrefs, where the first element is the numeric id
@@ -132,9 +132,9 @@ sub parse_messages {
         @ids = $self->list_mails;
     }
     my @mails;
-    my @attachments;
     foreach my $id (@ids) {
         print "Parsing $id\n";
+        my @attachments;
         my $body = $self->imap->get_rfc822_body($id);
         unless ($body && $$body) {
             warn "Couldn't retrieve the body mail for $id!";
