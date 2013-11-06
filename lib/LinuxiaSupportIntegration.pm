@@ -186,8 +186,8 @@ sub parse_mails {
         @ids = $self->list_mails;
     }
     my @mails;
-    my @attachments;
     foreach my $id (@ids) {
+        my @attachments;
         my $body = $self->imap->get_rfc822_body($id);
         my $email = Email::MIME->new($$body);
         my %details = (
