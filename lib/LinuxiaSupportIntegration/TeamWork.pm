@@ -252,6 +252,11 @@ sub create_task {
                                     description => $body,
                                   }
                   };
+
+    if (my $assigned = $self->_assign_to) {
+        $details->{'todo-item'}->{'responsible-party-id'} = $assigned;
+    }
+
     die "Missing todo_lists id!" unless $id;
     my $res = $self->_do_api_request(post => "/todo_lists/$id/todo_items.json",
                                      $self->_ua_params($details));
@@ -447,6 +452,52 @@ sub _check_hash {
         return;
     }
 }
+
+=head2 persons
+
+Return a list of account details for the current project.
+
+=cut
+
+sub persons {
+    my $self = shift;
+    my $res = $self->_do_api_request(get => '/projects/'
+                                     . $self->find_project_id($self->project)
+                                     . '/people.json');
+    return unless $res;
+    my $persons = decode_json($res->decoded_content);
+    if ($persons->{people}) {
+        return @{$persons->{people}};
+    }
+}
+
+has _assign_to => (is => 'rw',
+                   default => sub { return "" });
+
+sub assign_tickets {
+    my ($self, @whos) = @_;
+    my @ids;
+    foreach my $who (@whos) {
+        my $found = 0;
+        # try to match against the usernames
+        foreach my $existing ($self->persons) {
+            if (lc($existing->{'user-name'}) eq lc($who) or
+                lc($existing->{'email-address'}) eq lc($who)) {
+                push @ids, $existing->{'id'};
+                $found = 1;
+                last;
+            }
+        }
+        warn "$who was not found in the project " . $self->project unless $found ;
+    }
+    if (scalar(@ids) != scalar (@whos)) {
+        warn "Some ids where not assigned!"
+    }
+    if (@ids) {
+        $self->_assign_to(join(",", @ids));
+    }
+}
+
 
 
 1;
