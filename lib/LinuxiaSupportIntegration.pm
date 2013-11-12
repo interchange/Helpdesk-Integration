@@ -267,7 +267,9 @@ sub parse_rt_ticket {
     my %rt_attachments;
     foreach (@attachments) {
         my $att = $self->rt->get_attachment(parent_id => $ticket,
-                                            id => $_);
+                                            id => $_,
+                                            undecoded => 1,
+                                           );
         print $att->{id}, " => ",
           $att->{ContentType} || "", " => ", $att->{Filename} || "", "\n";
         $rt_attachments{$att->{id}} = [ $att->{Filename}, $att->{Content} ];
