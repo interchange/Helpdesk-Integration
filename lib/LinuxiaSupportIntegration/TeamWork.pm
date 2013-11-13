@@ -479,6 +479,8 @@ sub assign_tickets {
     my @ids;
     foreach my $who (@whos) {
         my $found = 0;
+        $who =~ s/^\s+//;
+        $who =~ s/\s+$//;
         # try to match against the usernames
         foreach my $existing ($self->persons) {
             if (lc($existing->{'user-name'}) eq lc($who) or
