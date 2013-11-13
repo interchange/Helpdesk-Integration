@@ -20,6 +20,7 @@ my ($subject,
     $dry_run,
     $threshold,
     $teamwork,
+    $workers,
     $project,
     $force,
     $debug,
@@ -33,6 +34,7 @@ GetOptions (
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "teamwork"  => \$teamwork,
+            "workers=s" => \$workers,
             "project=s"   => \$project,
             "dry-run"   => \$dry_run,
             "force"     => \$force,
@@ -65,6 +67,9 @@ if ($project) {
 # see if we can retrieve the teamwork object
 if ($teamwork) {
     $linuxia->teamwork;
+    if ($workers) {
+        $linuxia->teamwork->assign_tickets(split(/\s?,\s?/, $workers));
+    }
 }
 
 # print Dumper($linuxia->imap->folders_more);
@@ -174,6 +179,11 @@ Options for adding to RT/TeamWork
 
     When this flag is set, the operation is not performed against RT
     but against the TeamWork.pm installation.
+
+  --workers <comma-separated list of username or emails>
+
+    Assign the task to a user. The user must be present in the TW
+    project. This for now works only on task creation for Teamwork.
 
   --dry-run
 

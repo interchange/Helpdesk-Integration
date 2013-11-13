@@ -26,10 +26,17 @@
 # same for teamwork
 ./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --teamwork
 
+# same for teamwork, but assigning to workers
+./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --teamwork --workers "melmothx@gmail.com,bubez"
+
 
 # copy the RT ticket 1 in the TW task "This is a test" (and create it
 # if needed).
 ./bin/move-ticket-to-tw.pl --ticket 1 --todo-list "This is a test"
+
+# sameb thing, but assign to a username
+
+./bin/move-ticket-to-tw.pl --ticket 4 --todo-list "This is a test" --workers "melmothx@gmail.com,bubez"
 
 # copy the RT ticket 1 in the TW task 1159613 as comments
 ./bin/move-ticket-to-tw.pl --ticket 1 --task 1159613
