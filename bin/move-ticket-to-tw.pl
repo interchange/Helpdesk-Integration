@@ -12,13 +12,14 @@ use Data::Dumper;
 use Cwd;
 binmode STDOUT, ":encoding(utf-8)";
 
-my ($ticket, $todo_list, $task, $help, $debug, $project);
+my ($ticket, $todo_list, $task, $help, $debug, $project, $workers);
 
 GetOptions (
             "ticket=i"  => \$ticket, # numeric
             "todo-list=s" => \$todo_list,
             "task=s" => \$task,
             "project=s" => \$project,
+            "workers=s" => \$workers,
             "help"      => \$help,
            );
 
@@ -48,6 +49,10 @@ if ($project) {
 
 # test if we can retrieve the teamwork object, it would die if not ok
 $linuxia->teamwork;
+
+if ($workers) {
+    $linuxia->teamwork->assign_tickets(split(/\s?,\s?/, $workers));
+}
 
 my @mails = $linuxia->show_ticket_mails($ticket);
 print join("\n", @mails);
@@ -93,6 +98,11 @@ Options:
 
    Name or id of the current project. Usually set in the configuration
    file, but you can override it using this option.
+
+ --workers <comma-separated list of username or emails>
+
+   Assign the task to a user. The user must be present in the TW
+   project. This for now works only on task creation.
 
 The --task and --todo-list options are mutually exclusive. The --task
 option will append the mails found in the RT ticket, while with the
