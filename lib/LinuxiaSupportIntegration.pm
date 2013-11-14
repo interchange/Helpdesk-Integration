@@ -128,6 +128,15 @@ sub imap {
 }
 
 
+=head2 parse_mails(@ids)
+
+Given the mail ids in the list passed as argument, retrive them and
+return a list of arrayrefs, where the first element is the numeric id
+of the IMAP mail, and the second is an L<Email::MIME> object.
+
+=cut
+
+
 =head2 parse_rt_ticket($ticket)
 
 Access via REST the ticket $ticket and return a list of arrayrefs.
@@ -141,16 +150,6 @@ when we look into RT.
 
 =cut
 
-sub _message_type_should_be_relayed {
-    my ($self, $type) = @_;
-    my %good = (
-                Create => 1,
-                Correspond => 1,
-                Comment => 1,
-               );
-    return $good{$type};
-}
-
 sub parse_rt_ticket {
     my ($self, $ticket) = @_;
     return $self->rt->parse_messages(ticket => $ticket);
@@ -160,7 +159,6 @@ sub parse_mails {
     my ($self, @ids) = @_;
     return $self->imap->parse_messages(ids => \@ids);
 }
-
 
 =head2 show_ticket_mails
 
