@@ -106,28 +106,6 @@ sub parse_messages {
                 }
             }
         }
-#        print Dumper($self->rt->get_attachment(parent_id => $ticket,
-#                                               id => $trx,
-#                                              ));
-#
-
-=head3 Needed patch to RT::Client::REST
-
-It seems that the request is first decoded (probably delegated to lwp)
-and then parsed, but doing so binary attachments are mangled. Only the
-raw request should be passed.
-
- @@ -155,7 +155,7 @@
-      my $id = $self->_valid_numeric_object_id(delete($opts{id}));
-  
-      my $form = form_parse(
- -        $self->_submit("$type/$parent_id/attachments/$id")->decoded_content
- +        $self->_submit("$type/$parent_id/attachments/$id")->content
-      );
-      my ($c, $o, $k, $e) = @{$$form[0]};
-
-=cut
-
         next unless $self->_message_type_should_be_relayed($mail->{Type});
         my $obj = LinuxiaSupportIntegration::Ticket->new(
                                                          date => $mail->{Created},
