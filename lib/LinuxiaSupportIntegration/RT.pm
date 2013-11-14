@@ -65,8 +65,8 @@ sub parse_messages {
     my ($self, %params) = @_;
     my $ticket = $params{ticket};
     return unless defined $ticket;
-    my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
-    my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
+    my @trxs = $self->get_transaction_ids(parent_id => $ticket, type => 'ticket');
+    my $fullticket = $self->show(type => 'ticket', id => $ticket);
     my %ticket_details = (
                           date => $fullticket->{Created},
                           from => $fullticket->{Creator},
@@ -76,10 +76,10 @@ sub parse_messages {
     my @details = (LinuxiaSupportIntegration::Ticket->new(%ticket_details));
     # probably here we want to take the first mail and dump it as body
     # of the ticket creation action.
-    my @attachments = $self->rt->get_attachment_ids(id => $ticket);
+    my @attachments = $self->get_attachment_ids(id => $ticket);
     my %rt_attachments;
     foreach (@attachments) {
-        my $att = $self->rt->get_attachment(parent_id => $ticket,
+        my $att = $self->get_attachment(parent_id => $ticket,
                                             id => $_,
                                             undecoded => 1,
                                            );
@@ -88,7 +88,7 @@ sub parse_messages {
         $rt_attachments{$att->{id}} = [ $att->{Filename}, $att->{Content} ];
     }
     foreach my $trx (@trxs) {
-        my $mail = $self->rt->get_transaction(parent_id => $ticket,
+        my $mail = $self->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
         my @current_atts;
