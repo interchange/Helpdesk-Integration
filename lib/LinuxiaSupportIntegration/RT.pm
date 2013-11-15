@@ -7,8 +7,8 @@ use Moo;
 
 has rt_obj => (is => 'rwp');
 
-has server => (is => 'ro',
-               required => 1);
+has url => (is => 'ro',
+            required => 1);
 has timeout => (is => 'ro',
                 default => sub { return 30 });
 has user => (is => 'ro',
@@ -22,7 +22,7 @@ sub rt {
     my $rt = $self->rt_obj;
     unless ($rt) {
         print "RT object empty, creating\n";
-        $rt = RT::Client::REST->new(server => $self->server,
+        $rt = RT::Client::REST->new(server => $self->url,
                                     timeout => $self->timeout);
         $self->_set_rt_obj($rt);
     }

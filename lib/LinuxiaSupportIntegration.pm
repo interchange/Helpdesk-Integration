@@ -27,17 +27,14 @@ use Moo;
 
 has imap_server => (
                     is => 'ro',
-                    required => 1,
                    );
 
 has imap_user => (
                   is => 'ro',
-                  required => 1,
                  );
 
 has imap_pass => (
                   is => 'ro',
-                  required => 1,
                  );
 
 has imap_ssl => (is => 'ro',
@@ -70,6 +67,62 @@ has imap_backup_folder => (is => 'rw',
                            default => sub { return "RT-Archive" });
 
 has debug_mode => (is => 'rw');
+has configuration => (is => 'ro',
+                      default => sub { return {} },
+                      isa => sub {
+                          my $conf = $_[0];
+                          die "Empty conf passed"
+                            unless $conf;
+                          die "Conf is not a reference"
+                            unless ref($conf);
+                          die "Conf is not an hashref"
+                            unless ref($conf) eq 'HASH';
+                          # validate the structure
+                          foreach my $k (keys %$conf) {
+                              foreach my $v (qw/type/) {
+                                  die "Missing $k configuration"
+                                    unless exists $conf->{$k}->{$v};
+                              }
+                              foreach my $v (keys %{$conf->{$k}}) {
+                                  die "Found deeper level"
+                                    if ref($conf->{$k}->{$v});
+                              }
+                          }
+                      });
+
+has target => (is => 'rwp');
+has source => (is => 'rwp');
+
+sub _create_object {
+    my ($self, $name) = @_;
+    my %credentials = %{$self->configuration->{$name}};
+    my $type = lc(delete $credentials{type});
+    my %map = (
+               rt => 'RT',
+               imap => 'IMAP',
+               teamwork => 'TeamWork',
+              );
+    my $class = $map{$type};
+    die "Unsupported type $type!" unless $class;
+    $class = __PACKAGE__ . '::' . $class;
+    my $obj = $class->new(%credentials);
+    print "Logging in with $class\n";
+    $obj->login;
+    return $obj;
+}
+
+sub set_target {
+    my ($self, $name) = @_;
+    my $obj = $self->_create_object($name);
+    $self->_set_target($obj);
+}
+
+sub set_source {
+    my ($self, $name) = @_;
+    my $obj = $self->_create_object($name);
+    $self->_set_source($obj);
+}
+
 
 sub teamwork {
     my $self = shift;

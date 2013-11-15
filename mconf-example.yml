@@ -1,0 +1,29 @@
+imap:
+  type: imap
+  server: "mx1.server.net"
+  user: 'marco@linuxia.de'
+  pass: "xxxxxx"
+  backup_folder: "RT-backup-Archive" 
+  ssl: 0
+imap2:
+  type: imap
+  server: "mx1.server2.net"
+  user: 'marco2@linuxia.de'
+  pass: "xxxxx"
+  backup_folder: "RT-backup-Archive" 
+  ssl: 0
+rt:
+  type: rt
+  url: http://localhost/rt
+  user: root
+  password: pzz
+teamwork:
+  type: teamwork
+  api_key: mykey
+  host: https://instance.teamworkpm.net
+  project: Linuxia testing
+teamwork2:
+  type: teamwork
+  api_key: myotherkey
+  host: https://instance2.teamworkpm.net
+  project: Linuxia testing
