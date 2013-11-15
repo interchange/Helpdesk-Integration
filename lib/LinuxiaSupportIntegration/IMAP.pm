@@ -65,11 +65,14 @@ sub imap {
         $imap = Net::IMAP::Client->new(%credentials);
         die "Couldn't connect to " . $self->server . " for user " . $self->user
           unless ($imap);
-        $imap->login or die $imap->last_error;
-        print "Loggin into IMAP\n";
         $self->_set_imap_obj($imap);
     }
     return $imap;
+}
+
+sub login {
+    my $self = shift;
+    $self->imap->login or die $self->imap->last_error;
 }
 
 has _mail_search_hash => (is => 'rw',

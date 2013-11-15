@@ -1,19 +1,51 @@
 package LinuxiaSupportIntegration::RT;
 use strict;
 use warnings;
-use base 'RT::Client::REST';
+use RT::Client::REST;
+
+use Moo;
+
+has rt_obj => (is => 'rwp');
+
+has server => (is => 'ro',
+               required => 1);
+has timeout => (is => 'ro',
+                default => sub { return 30 });
+has user => (is => 'ro',
+             required => 1);
+has password => (is => 'ro',
+                 required => 1);
+
+
+sub rt {
+    my $self = shift;
+    my $rt = $self->rt_obj;
+    unless ($rt) {
+        print "RT object empty, creating\n";
+        $rt = RT::Client::REST->new(server => $self->server,
+                                    timeout => $self->timeout);
+        $self->_set_rt_obj($rt);
+    }
+    return $rt;
+}
+
+sub login {
+    my $self = shift;
+    $self->rt->login(username => $self->user, password => $self->password);
+}
+
 
 sub linuxia_create {
     my ($self, $body, $eml, $opts) = @_;
-    my $ticket = $self->create(type => 'ticket',
-                               set => {
-                                       Queue => $opts->{queue} || "General",
-                                       Requestor => $eml->from,
-                                       Subject => $opts->{subject} || $eml->subject,
-                                      },
-                               text => $body);
+    my $ticket = $self->rt->create(type => 'ticket',
+                                   set => {
+                                           Queue => $opts->{queue} || "General",
+                                           Requestor => $eml->from,
+                                           Subject => $opts->{subject} || $eml->subject,
+                                          },
+                                   text => $body);
     return $ticket;
-};
+}
 
 sub _linuxia_do {
     my ($self, $action, $ticket, $body, $eml, $opts) = @_;
@@ -21,9 +53,9 @@ sub _linuxia_do {
     foreach (@attach) {
         die "Couldn't find $_ " unless -f $_;
     }
-    $self->$action(ticket_id => $ticket,
-                   attachments => [ @attach ],
-                   message => $body);
+    $self->rt->$action(ticket_id => $ticket,
+                       attachments => [ @attach ],
+                       message => $body);
     return ucfirst($action) . " added on ticket $ticket";
 }
 
@@ -65,8 +97,8 @@ sub parse_messages {
     my ($self, %params) = @_;
     my $ticket = $params{ticket};
     return unless defined $ticket;
-    my @trxs = $self->get_transaction_ids(parent_id => $ticket, type => 'ticket');
-    my $fullticket = $self->show(type => 'ticket', id => $ticket);
+    my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
+    my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
     my %ticket_details = (
                           date => $fullticket->{Created},
                           from => $fullticket->{Creator},
@@ -76,10 +108,10 @@ sub parse_messages {
     my @details = (LinuxiaSupportIntegration::Ticket->new(%ticket_details));
     # probably here we want to take the first mail and dump it as body
     # of the ticket creation action.
-    my @attachments = $self->get_attachment_ids(id => $ticket);
+    my @attachments = $self->rt->get_attachment_ids(id => $ticket);
     my %rt_attachments;
     foreach (@attachments) {
-        my $att = $self->get_attachment(parent_id => $ticket,
+        my $att = $self->rt->get_attachment(parent_id => $ticket,
                                             id => $_,
                                             undecoded => 1,
                                            );
@@ -88,7 +120,7 @@ sub parse_messages {
         $rt_attachments{$att->{id}} = [ $att->{Filename}, $att->{Content} ];
     }
     foreach my $trx (@trxs) {
-        my $mail = $self->get_transaction(parent_id => $ticket,
+        my $mail = $self->rt->get_transaction(parent_id => $ticket,
                                               id => $trx,
                                               type => 'ticket');
         my @current_atts;

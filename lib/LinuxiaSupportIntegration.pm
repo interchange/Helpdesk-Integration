@@ -92,14 +92,14 @@ sub rt {
     my $rt = $self->rt_obj;
     unless ($rt) {
         $rt = LinuxiaSupportIntegration::RT->new(
-                                    server => $self->rt_url,
-                                    timeout => 30,
-                                   );
+                                                 server => $self->rt_url,
+                                                 timeout => 30,
+                                                 user => $self->rt_user,
+                                                 password => $self->rt_password,
+                                                );
         # initialize, log in, and store the object
-        my $user = $self->rt_user;
-        my $password = $self->rt_password;
         try {
-            $rt->login(username => $user, password => $password);
+            $rt->login;
         } otherwise  {
             die "problem logging in: " . shift;
         };
@@ -122,6 +122,7 @@ sub imap {
                                                      target_folder => $self->imap_target_folder,
                                                      debug_mode => $self->debug_mode,
                                                     );
+        $imap->login;
         $self->_set_imap_obj($imap);
     }
     return $imap;
