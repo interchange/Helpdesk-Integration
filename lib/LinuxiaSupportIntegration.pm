@@ -104,7 +104,6 @@ sub execute {
     my $self = shift;
     my @archive;
     my @messages;
-    my $opts;
     foreach my $mail ($self->source->parse_messages) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
@@ -114,26 +113,24 @@ sub execute {
         # (only cc and attachments), so it should be OK to inject
         # these info in the body
         try {
-            my $body = $eml->as_string;
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
             if (!$self->target->append) {
-                my ($ticket, $msg) = $self->target->linuxia_create($body, $eml, $opts);
+                my ($ticket, $msg) = $self->target->create($eml);
                 push @messages, $msg;
                 die "No ticket returned!" unless $ticket;
                 $self->target->append($ticket);
                 if (my @attachments = $eml->attachments_filenames) {
-                    $self->target->linuxia_correspond($ticket, "Attached file",
-                                                     $eml, $opts);
+                    $self->target->correspond($eml);
                 }
             }
             elsif ($self->target->is_comment) {
                 push @messages,
-                  $self->target->linuxia_comment($self->target->append, $body, $eml, $opts);
+                  $self->target->comment($eml);
             }
             else {
                 push @messages,
-                  $self->target->linuxia_correspond($self->target->append, $body, $eml, $opts);
+                  $self->target->correspond($eml);
             }
             push @archive, $id;
 

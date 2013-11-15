@@ -214,7 +214,7 @@ sub create_task_list {
 
     my $details = { "todo-list" => {
                                   name => $name,
-                                  description => $description
+                                  description => $description,
                                  }
                   };
     my $res = $self->_do_api_request(post => "/projects/$id/todo_lists.json",
@@ -248,10 +248,10 @@ It returns the task id.
 =cut
 
 sub create_task {
-    my ($self, $id, $body, $eml, $opts) = @_;
+    my ($self, $id, $eml) = @_;
     my $details = {
                    "todo-item" => { content => $self->subject || $eml->subject,
-                                    description => $body,
+                                    description => $eml->as_string,
                                   }
                   };
 
@@ -311,12 +311,13 @@ sub upload_files {
 
 
 sub create_comment {
-    my ($self, $id, $body, $eml, $opts) = @_;
+    my ($self, $eml) = @_;
     my $details = {
-                   comment => { body => $body,
+                   comment => { body => $eml->as_string,
                                 'emailed-from' => $eml->from,
                               },
                   };
+    my $id = $self->append;
     die "Missing todo_lists id!" unless $id;
 
     if (my @attachments = $self->upload_files($eml->attachments_filenames)) {
@@ -330,12 +331,12 @@ sub create_comment {
 
 }
 
-sub linuxia_correspond {
+sub correspond {
     my ($self, @args) = @_;
     return $self->create_comment(@args);
 }
 
-sub linuxia_comment {
+sub comment {
     my ($self, @args) = @_;
     return $self->create_comment(@args);
 }
@@ -350,14 +351,14 @@ numeric id of the task).
 
 =cut
 
-sub linuxia_create {
-    my ($self, $body, $eml, $opts) = @_;
+sub create {
+    my ($self, $eml) = @_;
     my $queue = $self->queue;
     die "Missing task list name or id" unless $queue;
     my $task_list = $self->find_task_list_id($queue)
       || $self->create_task_list($queue, "");
     die "No project found!" unless $task_list;
-    my $id =  $self->create_task($task_list, $body, $eml, $opts);
+    my $id =  $self->create_task($task_list, $eml);
     return $id, "Created ticket " . $self->_fqhost . "/tasks/$id";
 }
 

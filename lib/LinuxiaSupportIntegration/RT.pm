@@ -35,40 +35,41 @@ sub login {
 }
 
 
-sub linuxia_create {
-    my ($self, $body, $eml, $opts) = @_;
+sub create {
+    my ($self, $eml) = @_;
     my $ticket = $self->rt->create(type => 'ticket',
                                    set => {
                                            Queue => $self->queue || "General",
                                            Requestor => $eml->from,
                                            Subject => $self->subject || $eml->subject,
                                           },
-                                   text => $body);
+                                   text => $eml->as_string);
     return $ticket,
       "Created ticket " . $self->url ."/Ticket/Display.html?id=$ticket";
 }
 
-sub _linuxia_do {
-    my ($self, $action, $ticket, $body, $eml, $opts) = @_;
+sub _rt_do {
+    my ($self, $action, $eml) = @_;
     my @attach = $eml->attachments_filenames;
     foreach (@attach) {
         die "Couldn't find $_ " unless -f $_;
     }
-    $self->rt->$action(ticket_id => $self->append,
+    my $ticket = $self->append;
+    $self->rt->$action(ticket_id => $ticket,
                        attachments => [ @attach ],
-                       message => $body);
+                       message => $eml->as_string);
     return ucfirst($action) . " added on ticket $ticket";
 }
 
 
-sub linuxia_comment {
+sub comment {
     my ($self, @args) = @_;
-    return $self->_linuxia_do(comment => @args);
+    return $self->_rt_do(comment => @args);
 }
 
-sub linuxia_correspond {
+sub correspond {
     my ($self, @args) = @_;
-    return $self->_linuxia_do(correspond => @args);
+    return $self->_rt_do(correspond => @args);
 }
 
 
