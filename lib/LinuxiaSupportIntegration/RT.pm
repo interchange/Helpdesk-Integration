@@ -4,6 +4,7 @@ use warnings;
 use RT::Client::REST;
 
 use Moo;
+extends 'LinuxiaSupportIntegration::Instance';
 
 has rt_obj => (is => 'rwp');
 
@@ -15,7 +16,6 @@ has user => (is => 'ro',
              required => 1);
 has password => (is => 'ro',
                  required => 1);
-
 
 sub rt {
     my $self = shift;
@@ -44,7 +44,8 @@ sub linuxia_create {
                                            Subject => $opts->{subject} || $eml->subject,
                                           },
                                    text => $body);
-    return $ticket;
+    return $ticket,
+      "Created ticket " . $self->url ."/Ticket/Display.html?id=$ticket";
 }
 
 sub _linuxia_do {
@@ -94,8 +95,8 @@ sub _message_type_should_be_relayed {
 }
 
 sub parse_messages {
-    my ($self, %params) = @_;
-    my $ticket = $params{ticket};
+    my $self = shift;
+    my $ticket = $self->search_params->{ticket};
     return unless defined $ticket;
     my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
     my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);

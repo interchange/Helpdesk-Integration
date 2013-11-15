@@ -51,6 +51,8 @@ The name or the id of the project.
 
 use Moo;
 
+extends 'LinuxiaSupportIntegration::Instance';
+
 has api_key => (is => 'ro',
                 required => 1);
 
@@ -355,7 +357,8 @@ sub linuxia_create {
     my $task_list = $self->find_task_list_id($queue)
       || $self->create_task_list($queue, "");
     die "No project found!" unless $task_list;
-    return $self->create_task($task_list, $body, $eml, $opts);
+    my $id =  $self->create_task($task_list, $body, $eml, $opts);
+    return $id, "Created ticket " . $self->_fqhost . "/tasks/$id";
 }
 
 

@@ -6,10 +6,7 @@ use Net::IMAP::Client;
 use Email::MIME;
 
 use Moo;
-
-has debug_mode => (is => 'rw');
-
-has error => (is => 'rwp');
+extends 'LinuxiaSupportIntegration::Instance';
 
 has server => (
                is => 'ro',
@@ -43,9 +40,6 @@ has current_mail_objects => (is => 'rwp',
 has imap_backup_folder => (is => 'rw',
                            default => sub { return "RT-Archive" });
 
-
-
-
 sub imap {
     my $self = shift;
     my $imap = $self->imap_obj;
@@ -75,12 +69,9 @@ sub login {
     $self->imap->login or die $self->imap->last_error;
 }
 
-has _mail_search_hash => (is => 'rw',
-                          default => sub { return {} },
-                         );
-
 sub mail_search_params {
-    my ($self, %search) = @_;
+    my $self = shift;
+    my %search = %{$self->search_params};
     my %do_search;
     if (%search) {
         foreach my $k (keys %search) {
@@ -88,9 +79,8 @@ sub mail_search_params {
                 $do_search{$k} = $search{$k};
             }
         }
-        $self->_mail_search_hash(\%do_search);
     }
-    return %{ $self->_mail_search_hash };
+    return %do_search;
 }
 
 sub list_mails {

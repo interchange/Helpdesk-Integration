@@ -123,6 +123,67 @@ sub set_source {
     $self->_set_source($obj);
 }
 
+sub summary {
+    my $self = shift;
+    return $self->_format_mails($self->source->parse_messages);
+}
+
+sub execute {
+    my $self = shift;
+    my @archive;
+    my @messages;
+    my $opts = $self->target->options;
+    my $ticket = $opts->{append};
+    foreach my $mail ($self->source->parse_messages) {
+        my $id = $mail->[0];
+        my $eml = $mail->[1];
+        die "Unexpected failure" unless $eml;
+
+        # the REST interface doesn't seem to support the from header
+        # (only cc and attachments), so it should be OK to inject
+        # these info in the body
+        try {
+            my $body = $eml->as_string;
+            # if no ticket provided, we create it and queue the other
+            # mails as correspondence to this one
+            if (!$ticket) {
+                my $msg;
+                ($ticket, $msg) = $self->target->linuxia_create($body, $eml, $opts);
+                push @messages, $msg;
+                if (my @attachments = $eml->attachments_filenames) {
+                    $self->target->linuxia_correspond($ticket, "Attached file",
+                                                     $eml, $opts);
+                }
+            }
+            elsif ($opts->{comment}) {
+                push @messages,
+                  $self->target->linuxia_comment($ticket, $body, $eml, $opts);
+            }
+            else {
+                push @messages,
+                  $self->target->linuxia_correspond($ticket, $body, $eml, $opts);
+            }
+            push @archive, $id;
+
+        } otherwise {
+            my $identifier;
+            if (defined $id) {
+                $identifier = $id;
+            }
+            else {
+                $identifier = "virtual mail";
+            }
+            if (my $project = $self->target->project) {
+                $identifier .= " (Project $project)";
+            }
+            warn "$identifier couldn't be processed: "  . shift . "\n";
+        };
+    }
+    $self->source->archive_messages(@archive);
+    return join("\n", @messages) . "\n";
+}
+
+
 
 sub teamwork {
     my $self = shift;
@@ -145,7 +206,7 @@ sub rt {
     my $rt = $self->rt_obj;
     unless ($rt) {
         $rt = LinuxiaSupportIntegration::RT->new(
-                                                 server => $self->rt_url,
+                                                 url => $self->rt_url,
                                                  timeout => 30,
                                                  user => $self->rt_user,
                                                  password => $self->rt_password,
@@ -219,7 +280,6 @@ sub parse_mails {
 List the mails found in the RT ticket $id;
 
 =cut
-
 
 sub show_ticket_mails {
     my ($self, $ticket) = @_;
@@ -304,6 +364,7 @@ sub move_rt_ticket_to_teamwork_task_list {
     return $self->process_emails(teamwork => undef, { queue => $task_list }, @mails);        
 }
 
+
 sub process_emails {
     my ($self, $type, $ticket, $opts, @mails) = @_;
     die "Wrong usage" unless ($type and ($type eq 'rt' or $type eq 'teamwork'));
@@ -326,7 +387,7 @@ sub process_emails {
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
             if (!$ticket) {
-                $ticket = $self->$type->linuxia_create($body, $eml, $opts);
+                ($ticket) = $self->$type->linuxia_create($body, $eml, $opts);
                 die "Couldn't create ticket!" unless $ticket;
                 my $msg;
                 if ($type eq 'rt') {

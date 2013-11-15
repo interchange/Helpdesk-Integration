@@ -23,7 +23,7 @@ GetOptions (
             "help"      => \$help,
            );
 
-my $conf_file = $ARGV[0] || getcwd() . "/conf.yml";
+my $conf_file = $ARGV[0] || getcwd() . "/mconf.yml";
 
 if ($help || (! -f $conf_file)) {
     show_help();
@@ -41,28 +41,32 @@ unless ($ticket) {
     exit 2;
 }
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug, %$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
+                                             configuration => $conf);
+
+$linuxia->set_source("rt");
+$linuxia->set_target("teamwork");
 
 if ($project) {
-    $linuxia->teamwork_project($project);
+    $linuxia->target->project($project);
 }
-
-# test if we can retrieve the teamwork object, it would die if not ok
-$linuxia->teamwork;
 
 if ($workers) {
-    $linuxia->teamwork->assign_tickets(split(/\s?,\s?/, $workers));
+    $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
 }
 
-my @mails = $linuxia->show_ticket_mails($ticket);
+print Dumper($linuxia);
+
+$linuxia->source->search_params({ ticket => $ticket });
+$linuxia->target->options({ 
+                           append => $task,
+                           queue  => $todo_list,
+                          });
+my @mails = $linuxia->summary;
 print join("\n", @mails);
 
-if ($task) {
-    print $linuxia->move_rt_ticket_to_teamwork_task($ticket, $task);
-}
-else {
-    print $linuxia->move_rt_ticket_to_teamwork_task_list($ticket, $todo_list);
-}
+print $linuxia->execute;
+
 
 sub show_help {
     print <<EOF
