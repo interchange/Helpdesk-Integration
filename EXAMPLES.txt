@@ -1,3 +1,5 @@
+set -e
+
 # the following examples have all the --debug flag set, which prevents
 #  the removing of the mails from the inbox
 

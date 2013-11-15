@@ -46,7 +46,7 @@ GetOptions (
 
 $threshold ||= 5;
 
-my $conf_file = $ARGV[0] || getcwd() . "/conf.yml";
+my $conf_file = $ARGV[0] || getcwd() . "/mconf.yml";
 
 if ($help || (! -f $conf_file)) {
     show_help();
@@ -58,18 +58,25 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug, %$conf);
+my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
+                                             configuration => $conf);
 
-if ($project) {
-    $linuxia->teamwork_project($project);
+$linuxia->set_source("imap");
+
+if ($teamwork) {
+    $linuxia->set_target("teamwork");
+}
+else {
+    $linuxia->set_target("rt");
+}
+
+if ($teamwork && $project) {
+    $linuxia->target->project($project);
 }
 
 # see if we can retrieve the teamwork object
-if ($teamwork) {
-    $linuxia->teamwork;
-    if ($workers) {
-        $linuxia->teamwork->assign_tickets(split(/\s?,\s?/, $workers));
-    }
+if ($teamwork && $workers) {
+    $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
 }
 
 # print Dumper($linuxia->imap->folders_more);
@@ -82,9 +89,9 @@ unless ($subject || $from) {
     $dry_run = 1;
 }
 
-$linuxia->imap->mail_search_params(subject => $subject, from => $from);
+$linuxia->source->search_params({subject => $subject, from => $from});
 
-my @mails = $linuxia->show_mails;
+my @mails = $linuxia->summary;
 print join("\n", @mails);
 exit if $dry_run;
 
@@ -99,30 +106,13 @@ if (!$ticket && $comment) {
     exit;
 }
 
-if ($ticket) {
-    if ($teamwork) {
-        # teamwork doesn't care about the --comment switch
-        print $linuxia->move_mails_to_teamwork_ticket($ticket); 
-    }
-    else {
-        if ($comment) {
-            print $linuxia->move_mails_to_rt_ticket_comment($ticket);
-        }
-        else {
-            print $linuxia->move_mails_to_rt_ticket($ticket);
-        }
-    }
-}
-else {
-    if ($teamwork) {
-        print $linuxia->create_teamwork_ticket($queue, $bts_subject);
-    }
-    else {
-        print $linuxia->create_rt_ticket($queue, $bts_subject);
-    }
-}
-
-print "\n";
+# preparation
+$linuxia->target->append($ticket) if $ticket;
+$linuxia->target->subject($bts_subject) if $bts_subject;
+$linuxia->target->queue($queue) if $queue;
+$linuxia->target->is_comment($comment) if $comment;
+print $linuxia->execute, "\n";
+exit;
 
 sub show_help {
     print <<'HELP';

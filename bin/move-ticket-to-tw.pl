@@ -55,13 +55,9 @@ if ($workers) {
     $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
 }
 
-print Dumper($linuxia);
-
 $linuxia->source->search_params({ ticket => $ticket });
-$linuxia->target->options({ 
-                           append => $task,
-                           queue  => $todo_list,
-                          });
+$linuxia->target->append($task) if $task;
+$linuxia->target->queue($todo_list) if $todo_list;
 my @mails = $linuxia->summary;
 print join("\n", @mails);
 

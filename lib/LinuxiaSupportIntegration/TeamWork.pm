@@ -250,7 +250,7 @@ It returns the task id.
 sub create_task {
     my ($self, $id, $body, $eml, $opts) = @_;
     my $details = {
-                   "todo-item" => { content => $opts->{subject} || $eml->subject,
+                   "todo-item" => { content => $self->subject || $eml->subject,
                                     description => $body,
                                   }
                   };
@@ -352,7 +352,7 @@ numeric id of the task).
 
 sub linuxia_create {
     my ($self, $body, $eml, $opts) = @_;
-    my $queue = $opts->{queue};
+    my $queue = $self->queue;
     die "Missing task list name or id" unless $queue;
     my $task_list = $self->find_task_list_id($queue)
       || $self->create_task_list($queue, "");

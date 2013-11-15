@@ -132,8 +132,7 @@ sub execute {
     my $self = shift;
     my @archive;
     my @messages;
-    my $opts = $self->target->options;
-    my $ticket = $opts->{append};
+    my $opts;
     foreach my $mail ($self->source->parse_messages) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
@@ -146,22 +145,23 @@ sub execute {
             my $body = $eml->as_string;
             # if no ticket provided, we create it and queue the other
             # mails as correspondence to this one
-            if (!$ticket) {
-                my $msg;
-                ($ticket, $msg) = $self->target->linuxia_create($body, $eml, $opts);
+            if (!$self->target->append) {
+                my ($ticket, $msg) = $self->target->linuxia_create($body, $eml, $opts);
                 push @messages, $msg;
+                die "No ticket returned!" unless $ticket;
+                $self->target->append($ticket);
                 if (my @attachments = $eml->attachments_filenames) {
                     $self->target->linuxia_correspond($ticket, "Attached file",
                                                      $eml, $opts);
                 }
             }
-            elsif ($opts->{comment}) {
+            elsif ($self->target->is_comment) {
                 push @messages,
-                  $self->target->linuxia_comment($ticket, $body, $eml, $opts);
+                  $self->target->linuxia_comment($self->target->append, $body, $eml, $opts);
             }
             else {
                 push @messages,
-                  $self->target->linuxia_correspond($ticket, $body, $eml, $opts);
+                  $self->target->linuxia_correspond($self->target->append, $body, $eml, $opts);
             }
             push @archive, $id;
 
@@ -179,7 +179,7 @@ sub execute {
             warn "$identifier couldn't be processed: "  . shift . "\n";
         };
     }
-    $self->source->archive_messages(@archive);
+    $self->source->archive_messages(@archive) unless $self->debug_mode;
     return join("\n", @messages) . "\n";
 }
 

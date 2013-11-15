@@ -39,9 +39,9 @@ sub linuxia_create {
     my ($self, $body, $eml, $opts) = @_;
     my $ticket = $self->rt->create(type => 'ticket',
                                    set => {
-                                           Queue => $opts->{queue} || "General",
+                                           Queue => $self->queue || "General",
                                            Requestor => $eml->from,
-                                           Subject => $opts->{subject} || $eml->subject,
+                                           Subject => $self->subject || $eml->subject,
                                           },
                                    text => $body);
     return $ticket,
@@ -54,7 +54,7 @@ sub _linuxia_do {
     foreach (@attach) {
         die "Couldn't find $_ " unless -f $_;
     }
-    $self->rt->$action(ticket_id => $ticket,
+    $self->rt->$action(ticket_id => $self->append,
                        attachments => [ @attach ],
                        message => $body);
     return ucfirst($action) . " added on ticket $ticket";
@@ -153,11 +153,6 @@ sub parse_messages {
     # mimic the output of parse_mails from IMAP, set index undef
     # so we don't end moving mails around.
     return map { [ undef, $_ ] } @details;
-}
-
-sub archive_messages {
-    # no op
-    return;
 }
 
 
