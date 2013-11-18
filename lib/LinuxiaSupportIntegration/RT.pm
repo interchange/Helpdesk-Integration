@@ -101,6 +101,40 @@ sub parse_messages {
     return unless defined $ticket;
     my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
     my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
+
+# if you have the relevant custom fields set, you would just need to
+# specify the ticket and have it routed correctly, right? use
+
+# Custom fields have pattern CF.{}
+
+# $VAR1 = { 
+#           'TimeEstimated' => '',
+#           'Status' => 'open',
+#           'Queue' => 'General',
+#           'AdminCc' => '',
+#           'CF.{Teamwork id}' => '13411234',
+#           'Requestors' => '',
+#           'Started' => 'Thu Oct 17 10:38:04 2013',
+#           'InitialPriority' => '',
+#           'Starts' => 'Not set',
+#           'TimeWorked' => '',
+#           'id' => 'ticket/2',
+#           'LastUpdated' => 'Mon Nov 18 11:37:19 2013',
+#           'CF.{Remote system}' => 'informa_teamwork',
+#           'Told' => 'Not set',
+#           'Cc' => '',
+#           'Subject' => 'Another test',
+#           'FinalPriority' => '',
+#           'TimeLeft' => '',
+#           'Creator' => 'root',
+#           'Owner' => 'Nobody',
+#           'Resolved' => 'Not set',
+#           'Created' => 'Tue Oct 08 09:37:52 2013',
+#           'Priority' => '',
+#           'Due' => 'Not set'
+#         };
+# 
+
     my %ticket_details = (
                           date => $fullticket->{Created},
                           from => $fullticket->{Creator},
