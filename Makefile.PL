@@ -24,7 +24,6 @@ WriteMakefile(
     },
     EXE_FILES => [
                   'bin/copy-mail-to-rt.pl',
-                  'bin/move-ticket-to-tw.pl',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'LinuxiaSupportIntegration-*' },

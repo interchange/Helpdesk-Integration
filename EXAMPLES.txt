@@ -43,3 +43,30 @@ set -e
 # copy the RT ticket 1 in the TW task 1159613 as comments
 ./bin/copy-mail-to-rt.pl --source rt  --target teamwork --bts-ticket 151 --queue "This is a test" --workers "melmothx@gmail.com,bubez" --ticket 1159613
 
+
+# custom fields
+
+# Assuming RT#155 has the custom fields "Remote system" set to
+# "teamwork" and the "Remote queue" set to "Hello", with the following
+# configuration:
+# 
+
+# rt:
+#   type: rt
+#   server: http://localhost/rt
+#   user: root
+#   password: xxxx
+#   target_name_field: "Remote system"
+#   target_id_field: "Teamwork id"
+#   target_queue_field: "Remote queue"
+# teamwork:
+#   type: teamwork
+#   password: xxxxxxx
+#   server: https://linuxiahr.teamworkpm.net
+#   project: Linuxia testing
+# 
+
+# the following command will discovery the target, and create a new
+#  todo-list in the Task list "Hello"
+
+bin/copy-mail-to-rt.pl --source rt --bts-ticket 155 

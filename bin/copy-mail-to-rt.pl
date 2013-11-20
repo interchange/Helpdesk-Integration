@@ -67,7 +67,24 @@ my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
 
 $linuxia->set_source($source || "imap");
 
-$linuxia->set_target($target || "rt");
+
+if ($linuxia->source->type eq 'imap') {
+    unless ($subject || $from) {
+        warn "No search parameter specified! This would take the whole INBOX!\n";
+        warn "Dry-run mode forced\n";
+        $dry_run = 1;
+    }
+}
+
+$linuxia->source->search_params({subject => $subject,
+                                 from => $from,
+                                 ticket => $bts_ticket,
+                                });
+
+$linuxia->source->search_target;
+
+# precedence: command line, derived target name from custom field, "rt"
+$linuxia->set_target($target || $linuxia->source->target_name || "rt");
 
 if ($linuxia->target->type eq 'teamwork' and $project) {
     $linuxia->target->project($project);
@@ -83,18 +100,6 @@ if ($workers) {
 # print Dumper($linuxia->imap->search("ALL"));
 
 
-if ($linuxia->source->type eq 'imap') {
-    unless ($subject || $from) {
-        warn "No search parameter specified! This would take the whole INBOX!\n";
-        warn "Dry-run mode forced\n";
-        $dry_run = 1;
-    }
-}
-
-$linuxia->source->search_params({subject => $subject,
-                                 from => $from,
-                                 ticket => $bts_ticket,
-                                });
 
 my @mails = $linuxia->summary;
 print join("\n", @mails);
@@ -112,9 +117,14 @@ if (!$ticket && $comment) {
 }
 
 # preparation
+$ticket ||= $linuxia->source->target_id;
 $linuxia->target->append($ticket) if $ticket;
+
 $linuxia->target->subject($bts_subject) if $bts_subject;
+
+$queue ||= $linuxia->source->target_queue;
 $linuxia->target->queue($queue) if $queue;
+
 $linuxia->target->is_comment($comment) if $comment;
 print $linuxia->execute, "\n";
 exit;
