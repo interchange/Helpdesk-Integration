@@ -35,9 +35,11 @@ The following parameters should be passed to the constructor:
 
 =over 4
 
-=item api_key
+=item password
 
-=item host
+The API key
+
+=item server
 
 (with or without protocol). If protocol is omitted the http protocol 
 
@@ -53,10 +55,10 @@ use Moo;
 
 extends 'LinuxiaSupportIntegration::Instance';
 
-has api_key => (is => 'ro',
+has password => (is => 'ro',
                 required => 1);
 
-has host => (is => 'ro',
+has server => (is => 'ro',
              required => 1);
 
 has project => (is => 'rw');
@@ -69,7 +71,7 @@ sub _fqhost {
     my $self = shift;
     my $name = $self->_fqhostname;
     unless ($name) {
-        my $host = $self->host;
+        my $host = $self->server;
         if ($host !~ m/^http/) {
             $name = "http://$host";
         }
@@ -88,11 +90,11 @@ sub _auth_host {
     my $self = shift;
     my $name = $self->_barehost;
     unless ($name) {
-        if ($self->host =~ m!(https?://)?(.+?)/?$!) {
+        if ($self->server =~ m!(https?://)?(.+?)/?$!) {
             $name = $2;
         }
         else {
-            die "Bad host " . $self->host;
+            die "Bad host " . $self->server;
         }
         $self->_barehost($name);
     }
@@ -130,7 +132,7 @@ sub login {
     }
     $self->ua->credentials($self->_auth_host . ":" . $port,
                            $self->auth_realm,
-                           $self->api_key,
+                           $self->password,
                            1 # fake password, not needed
                           );
     return $self->get_projects;

@@ -8,7 +8,28 @@ extends 'LinuxiaSupportIntegration::Instance';
 
 has rt_obj => (is => 'rwp');
 
-has url => (is => 'ro',
+
+=head2 ACCESSORS
+
+The following keys must be passed to the constructor
+
+=over 4
+
+=item server
+
+(the RT url, e.g. "http://localhost/rt")
+
+=item user
+
+=item password
+
+=item timeout (optional)
+
+=back
+
+=cut
+
+has server => (is => 'ro',
             required => 1);
 has timeout => (is => 'ro',
                 default => sub { return 30 });
@@ -22,7 +43,7 @@ sub rt {
     my $rt = $self->rt_obj;
     unless ($rt) {
         print "RT object empty, creating\n";
-        $rt = RT::Client::REST->new(server => $self->url,
+        $rt = RT::Client::REST->new(server => $self->server,
                                     timeout => $self->timeout);
         $self->_set_rt_obj($rt);
     }
@@ -45,7 +66,7 @@ sub create {
                                           },
                                    text => $eml->as_string);
     return $ticket,
-      "Created ticket " . $self->url ."/Ticket/Display.html?id=$ticket";
+      "Created ticket " . $self->server ."/Ticket/Display.html?id=$ticket";
 }
 
 sub _rt_do {

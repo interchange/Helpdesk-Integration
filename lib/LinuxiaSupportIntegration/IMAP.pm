@@ -18,7 +18,7 @@ has user => (
              required => 1,
             );
 
-has pass => (
+has password => (
              is => 'ro',
              required => 1,
             );
@@ -48,7 +48,7 @@ sub imap {
         my %credentials = (
                            server => $self->server,
                            user   => $self->user,
-                           pass   => $self->pass,
+                           pass   => $self->password,
                           );
         if (my $port = $self->port) {
             $credentials{port} = $port;
