@@ -12,7 +12,7 @@ use Data::Dumper;
 use Cwd;
 binmode STDOUT, ":encoding(utf-8)";
 
-my ($ticket, $todo_list, $task, $help, $debug, $project, $workers);
+my ($ticket, $todo_list, $task, $help, $debug, $project, $workers, $source, $target);
 
 GetOptions (
             "ticket=i"  => \$ticket, # numeric
@@ -21,6 +21,8 @@ GetOptions (
             "project=s" => \$project,
             "workers=s" => \$workers,
             "help"      => \$help,
+            "source=s"  => \$source,
+            "target=s"  => \$target,
            );
 
 my $conf_file = $ARGV[0] || getcwd() . "/mconf.yml";
@@ -44,8 +46,23 @@ unless ($ticket) {
 my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
                                              configuration => $conf);
 
-$linuxia->set_source("rt");
-$linuxia->set_target("teamwork");
+
+# it should reference a configuration key or we die
+$linuxia->set_source($source || "rt");
+
+# set the search parameters. Order matters! we need the search params
+# to search for a target!
+$linuxia->source->search_params({ ticket => $ticket });
+
+
+$linuxia->source->search_target;
+
+# precedence: command line, derived target name from custom field, "teamwork"
+$linuxia->set_target($target || $linuxia->source->target_name || "teamwork");
+
+if ($linuxia->source->target_name) {
+    print "Using target " . $linuxia->source->target_name . "\n";
+}
 
 if ($project) {
     $linuxia->target->project($project);
@@ -55,12 +72,19 @@ if ($workers) {
     $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
 }
 
-$linuxia->source->search_params({ ticket => $ticket });
+# set the ticket id, if any
+$task ||= $linuxia->source->target_id;
 $linuxia->target->append($task) if $task;
+
+# set the queue name, if any
+$todo_list ||= $linuxia->source->target_queue;
 $linuxia->target->queue($todo_list) if $todo_list;
+
+# summary
 my @mails = $linuxia->summary;
 print join("\n", @mails);
 
+# do the stuff
 print $linuxia->execute;
 
 

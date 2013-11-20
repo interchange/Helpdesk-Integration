@@ -97,10 +97,27 @@ sub _message_type_should_be_relayed {
 
 sub parse_messages {
     my $self = shift;
+    if ($self->message_cache) {
+        warn "found message_cache\n";
+        return @{ $self->message_cache };
+    }
     my $ticket = $self->search_params->{ticket};
     return unless defined $ticket;
     my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
     my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
+    die "No ticket $ticket found" unless $fullticket;
+
+    for my $n (qw/name id queue/) {
+        my $field_method = "target_${n}_field";
+        my $setter_method = "_set_target_${n}";
+        if (my $cf_name = $self->$field_method) {
+            if (my $target = $fullticket->{"CF.{$cf_name}"}) {
+                warn "Found $n $cf_name => $target";
+                $self->$setter_method($target);
+            }
+        }
+    }
+
 
 # if you have the relevant custom fields set, you would just need to
 # specify the ticket and have it routed correctly, right? use
@@ -187,12 +204,23 @@ sub parse_messages {
     # print Dumper(\@details);
     # mimic the output of parse_mails from IMAP, set index undef
     # so we don't end moving mails around.
-    return map { [ undef, $_ ] } @details;
+    my @out = map { [ undef, $_ ] } @details;
+    $self->message_cache(\@out);
+    return @out;
 }
 
 sub type {
     return "rt";
 }
+
+# search_target will just call parse_messages, which in turn will put
+# the messages in the cache and set target_name and target_id, if any
+sub search_target {
+    my $self = shift;
+    print "Searching messages\n";
+    $self->parse_messages;
+}
+
 
 1;
 
