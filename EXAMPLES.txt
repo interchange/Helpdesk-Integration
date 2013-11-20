@@ -11,13 +11,13 @@ set -e
 
 # copy the mails from marco in the TW task list "New thing" (and
 # create it if needed)
-./bin/copy-mail-to-rt.pl --debug --from marco --teamwork --queue "New thing"
+./bin/copy-mail-to-rt.pl --debug --from marco --target teamwork --queue "New thing"
 
 # copy the mails from marco in the RT ticket 2
 ./bin/copy-mail-to-rt.pl --debug --from marco --ticket 2
 
 # copy the  mails from marco in the TW task 1159403 as comments
-./bin/copy-mail-to-rt.pl --debug --from marco --teamwork --ticket 1159403
+./bin/copy-mail-to-rt.pl --debug --from marco --target teamwork --ticket 1159403
 
 # copy the mails from marco in the ticket 2 as comment
 ./bin/copy-mail-to-rt.pl --debug --from marco --ticket 2 --comment
@@ -26,10 +26,10 @@ set -e
 ./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj"
 
 # same for teamwork
-./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --teamwork
+./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --target teamwork
 
 # same for teamwork, but assigning to workers
-./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --teamwork --workers "melmothx@gmail.com,bubez"
+./bin/copy-mail-to-rt.pl --debug --from marco --bts-subject "Testing the subj" --queue Test --target teamwork --workers "melmothx@gmail.com,bubez"
 
 
 # copy the RT ticket 1 in the TW task "This is a test" (and create it

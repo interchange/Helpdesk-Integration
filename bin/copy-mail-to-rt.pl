@@ -19,21 +19,23 @@ my ($subject,
     $help,
     $dry_run,
     $threshold,
-    $teamwork,
     $workers,
     $project,
     $force,
     $debug,
+    $source,
+    $target,
     $bts_subject,
     $queue);
 
 GetOptions (
+            "source=s"  => \$source,
+            "target=s"  => \$target,
             "subject=s" => \$subject,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
-            "teamwork"  => \$teamwork,
             "workers=s" => \$workers,
             "project=s"   => \$project,
             "dry-run"   => \$dry_run,
@@ -61,21 +63,16 @@ die "Bad configuration file $conf_file" unless $conf;
 my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
                                              configuration => $conf);
 
-$linuxia->set_source("imap");
+$linuxia->set_source($source || "imap");
 
-if ($teamwork) {
-    $linuxia->set_target("teamwork");
-}
-else {
-    $linuxia->set_target("rt");
-}
+$linuxia->set_target($target || "rt");
 
-if ($teamwork && $project) {
+if ($linuxia->target->type eq 'teamwork' and $project) {
     $linuxia->target->project($project);
 }
 
 # see if we can retrieve the teamwork object
-if ($teamwork && $workers) {
+if ($workers) {
     $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
 }
 
@@ -119,33 +116,56 @@ sub show_help {
 
 Usage: copy-mail-to-rt.pl [ options ] [ configuration.file.yml ]
 
-The configuration file argument is optional and defaults to "conf.yml"
+The configuration file argument is optional and defaults to "mconf.yml"
 located in the current directory.
 
-It should contain the following keys:
+Multiple instance are supported. Every defined instance must have its
+own settings listed as in the example below.
 
-  # IMAP credentials
-  imap_server: "imap.server.net"
-  imap_user: 'marco@test.me'
-  imap_pass: "xxxxxxxxxxxxx"
-  
-  # optional, defaults to "RT-Archive"
-  imap_backup_folder: "RT-backup-Archive"
+Common keys: type, server, user (not needed for teamwork), password.
 
-  # optional
-  imap_ssl: 1
-  imap_port: 993
+imap:
+  type: imap
+  server: "mx1.cobolt.net"
+  user: 'marco@linuxia.de'
+  password: "xxxxxxxxxx"
+  backup_folder: "RT-backup-Archive" 
+  ssl: 0
+imap2:
+  type: imap
+  server: "mx1.cobolt.net"
+  user: 'marco@linuxia.de'
+  password: "xxxxxxxxx"
+  backup_folder: "RT-backup-Archive" 
+  ssl: 0
+rt:
+  type: rt
+  server: http://localhost/rt
+  user: root
+  password: xxxxxx
+  target_name_field: "Remote system"
+  target_id_field: "Teamwork id"
+  target_queue_field: "Remote queue"
+teamwork:
+  type: teamwork
+  password: xxxxxxxxxx
+  server: https://linuxiahr.teamworkpm.net
+  project: Linuxia testing
+informa_teamwork:
+  type: teamwork
+  password: xxxxxxxxxxxxxx
+  server: https://linuxiahr.teamworkpm.net
+  project: Linuxia testing
+
+Options to define the source and target:
+
+  --source <string>
+    (<string> must exist in the configuration file). Defaults to "imap"
+
+  --target <string>
+    (<string> must exist in the configuration file). Defaults to "rt"
   
-  # RT credentials
-  rt_url: "http://localhost/rt"
-  rt_user: pinco
-  rt_password: pallino
-  
-  # Team work credentials, still unused
-  teamwork_host: myhost.no.proto
-  teamwork_api_key: xxxxxxx
-  teamwork_project: Test project
-  
+
 Options for fetching the mails:
 
   --subject '<string>'
@@ -164,11 +184,6 @@ Options for adding to RT/TeamWork
 
     Overwrite the subject email when setting the subject of the
     ticket. This applies for RT and TW.
-
-  --teamwork
-
-    When this flag is set, the operation is not performed against RT
-    but against the TeamWork.pm installation.
 
   --workers <comma-separated list of username or emails>
 
