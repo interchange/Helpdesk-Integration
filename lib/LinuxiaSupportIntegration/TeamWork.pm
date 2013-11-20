@@ -504,6 +504,8 @@ sub assign_tickets {
     }
 }
 
-
+sub type {
+    return "teamwork";
+}
 
 1;

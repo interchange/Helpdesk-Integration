@@ -27,5 +27,5 @@ WriteMakefile(
                   'bin/move-ticket-to-tw.pl',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Dancer-Plugin-LDAP-*' },
+    clean               => { FILES => 'LinuxiaSupportIntegration-*' },
 );

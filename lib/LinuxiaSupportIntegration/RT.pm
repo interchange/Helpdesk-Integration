@@ -190,6 +190,9 @@ sub parse_messages {
     return map { [ undef, $_ ] } @details;
 }
 
+sub type {
+    return "rt";
+}
 
 1;
 

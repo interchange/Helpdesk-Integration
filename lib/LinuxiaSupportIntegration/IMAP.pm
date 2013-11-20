@@ -218,6 +218,8 @@ sub imap_backup_folder_full_path {
     return "INBOX" . $separator . $name;
 }
 
-
+sub type {
+    return "imap";
+}
 
 1;
