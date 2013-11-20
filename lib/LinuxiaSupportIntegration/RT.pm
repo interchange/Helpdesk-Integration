@@ -189,8 +189,8 @@ sub parse_messages {
                                             id => $_,
                                             undecoded => 1,
                                            );
-        print $att->{id}, " => ",
-          $att->{ContentType} || "", " => ", $att->{Filename} || "", "\n";
+        # print $att->{id}, " => ",
+        #  $att->{ContentType} || "", " => ", $att->{Filename} || "", "\n";
         $rt_attachments{$att->{id}} = [ $att->{Filename}, $att->{Content} ];
     }
     foreach my $trx (@trxs) {
