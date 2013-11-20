@@ -23,7 +23,7 @@ WriteMakefile(
                   'YAML' => 0,
     },
     EXE_FILES => [
-                  'bin/copy-mail-to-rt.pl',
+                  'bin/helpdesk-integration',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'LinuxiaSupportIntegration-*' },

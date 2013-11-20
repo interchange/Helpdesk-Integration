@@ -132,7 +132,7 @@ exit;
 sub show_help {
     print <<'HELP';
 
-Usage: copy-mail-to-rt.pl [ options ] [ configuration.file.yml ]
+Usage: helpdesk-integration [ options ] [ configuration.file.yml ]
 
 The configuration file argument is optional and defaults to "mconf.yml"
 located in the current directory.
