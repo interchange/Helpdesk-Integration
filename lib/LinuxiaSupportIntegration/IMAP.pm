@@ -74,7 +74,7 @@ sub mail_search_params {
     my %search = %{$self->search_params};
     my %do_search;
     if (%search) {
-        foreach my $k (keys %search) {
+        foreach my $k (qw/from subject/) {
             if ($search{$k}) {
                 $do_search{$k} = $search{$k};
             }

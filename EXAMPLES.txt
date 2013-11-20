@@ -34,12 +34,12 @@ set -e
 
 # copy the RT ticket 1 in the TW task "This is a test" (and create it
 # if needed).
-./bin/move-ticket-to-tw.pl --ticket 1 --todo-list "This is a test"
+./bin/copy-mail-to-rt.pl --source rt --target teamwork --bts-ticket 150 --queue "Pallino"
 
 # sameb thing, but assign to a username
 
-./bin/move-ticket-to-tw.pl --ticket 4 --todo-list "This is a test" --workers "melmothx@gmail.com,bubez"
+./bin/copy-mail-to-rt.pl --source rt --target teamwork --bts-ticket 151 --queue "This is a test" --workers "melmothx@gmail.com,bubez"
 
 # copy the RT ticket 1 in the TW task 1159613 as comments
-./bin/move-ticket-to-tw.pl --ticket 1 --task 1159613
+./bin/copy-mail-to-rt.pl --source rt  --target teamwork --bts-ticket 151 --queue "This is a test" --workers "melmothx@gmail.com,bubez" --ticket 1159613
 

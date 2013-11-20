@@ -14,6 +14,7 @@ binmode STDOUT, ":encoding(utf-8)";
 
 my ($subject,
     $from,
+    $bts_ticket,
     $ticket,
     $comment,
     $help,
@@ -32,6 +33,7 @@ GetOptions (
             "source=s"  => \$source,
             "target=s"  => \$target,
             "subject=s" => \$subject,
+            "bts-ticket=i" => \$bts_ticket,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
             "comment"   => \$comment, #boolean
@@ -80,13 +82,19 @@ if ($workers) {
 # $linuxia->imap->select("INBOX.RT-backup-Archive");
 # print Dumper($linuxia->imap->search("ALL"));
 
-unless ($subject || $from) {
-    warn "No search parameter specified! This would take the whole INBOX!\n";
-    warn "Dry-run mode forced\n";
-    $dry_run = 1;
+
+if ($linuxia->source->type eq 'imap') {
+    unless ($subject || $from) {
+        warn "No search parameter specified! This would take the whole INBOX!\n";
+        warn "Dry-run mode forced\n";
+        $dry_run = 1;
+    }
 }
 
-$linuxia->source->search_params({subject => $subject, from => $from});
+$linuxia->source->search_params({subject => $subject,
+                                 from => $from,
+                                 ticket => $bts_ticket,
+                                });
 
 my @mails = $linuxia->summary;
 print join("\n", @mails);
@@ -166,17 +174,21 @@ Options to define the source and target:
     (<string> must exist in the configuration file). Defaults to "rt"
   
 
-Options for fetching the mails:
+Options for fetching the messages:
 
   --subject '<string>'
 
     The mails with the subject containing the given string will be
-    added to RT.
+    added to RT. It's relevant only if the source is an imap type.
 
   --from '<string>'
 
     The mails with the from header containing the given string will be
-    added to RT.
+    added to RT. It's relevant only if the source is an imap type.
+
+  --bts-ticket '<digit>'
+
+    The ID of the ticket to fetch if the source is a rt type.
 
 Options for adding to RT/TeamWork
 
