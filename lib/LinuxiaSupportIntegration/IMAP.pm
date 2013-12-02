@@ -26,6 +26,7 @@ has password => (
 has ssl => (is => 'ro',
             default => sub { return 1 });
 has port => (is => 'ro');
+has socket => (is => 'rw');
 has target_folder => (is => 'rw',
                       default => sub { return 'INBOX' });
 
@@ -54,7 +55,24 @@ sub imap {
             $credentials{port} = $port;
         }
         if (my $ssl = $self->ssl) {
-            $credentials{ssl} = $ssl;
+           $credentials{ssl} = $ssl;
+
+           # let us create the socket on our own in order to get
+           # better error messages
+           my $socket = IO::Socket::SSL->new (Proto => 'tcp',
+                                              PeerAddr=> $self->server,
+                                              PeerPort=> 993);
+
+           if ($socket) {
+               $self->socket($socket);
+               $credentials{socket} = $socket;
+           }
+           else {
+               die "$0: unable to create SSL connection: ",
+                   &IO::Socket::SSL::errstr(), "\n";
+           }
+
+
         }
         $imap = Net::IMAP::Client->new(%credentials);
         die "Couldn't connect to " . $self->server . " for user " . $self->user
