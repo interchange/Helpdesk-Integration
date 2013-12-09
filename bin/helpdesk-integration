@@ -26,6 +26,7 @@ my ($subject,
     $debug,
     $source,
     $target,
+    $todo_list,
     $bts_subject,
     $queue);
 
@@ -36,6 +37,7 @@ GetOptions (
             "bts-ticket=i" => \$bts_ticket,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
+            "todo-list=i" => \$todo_list,
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "workers=s" => \$workers,
@@ -100,6 +102,21 @@ if ($project) {
         die $linuxia->target->conf_name  . " is not a teamwork instance, project would be ignored\n";
     }
 }
+
+if ($todo_list) {
+    if ($linuxia->target->type eq 'teamwork') {
+        if (!$ticket) {
+            $ticket = $todo_list;
+        }
+        else {
+            die "todo-list and ticket are alias, you set both, exiting\n";
+        }
+    }
+    else {
+        warn "Ignored option --todo-list $todo_list, not a teamwork target\n";
+    }
+}
+
 
 # see if we can retrieve the teamwork object
 if ($workers) {
@@ -239,6 +256,10 @@ Options for adding to RT/TeamWork
     Add the mail to the given ticket. If none is provided, a new
     ticket will be created using the first mail, and the other will be
     added as correspondence (for RT) or as comment (for Teamwork).
+
+  --todo-list '<id>'
+
+    Alias for ticket when the target type is teamwork. Ignored otherwise.
 
   --comment
 
