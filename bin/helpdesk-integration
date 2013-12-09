@@ -76,6 +76,12 @@ if ($linuxia->source->type eq 'imap') {
     }
 }
 
+elsif ($linuxia->source->type eq 'rt') {
+    unless ($bts_ticket) {
+        die "Source is RT, but no --bts-ticket was specified, exiting\n";
+    }
+}
+
 $linuxia->source->search_params({subject => $subject,
                                  from => $from,
                                  ticket => $bts_ticket,
