@@ -86,8 +86,13 @@ $linuxia->source->search_target;
 # precedence: command line, derived target name from custom field, "rt"
 $linuxia->set_target($target || $linuxia->source->target_name || "rt");
 
-if ($linuxia->target->type eq 'teamwork' and $project) {
-    $linuxia->target->project($project);
+if ($project) {
+    if ($linuxia->target->type eq 'teamwork') {
+        $linuxia->target->project($project);
+    }
+    else {
+        die $linuxia->target->conf_name  . " is not a teamwork instance, project would be ignored\n";
+    }
 }
 
 # see if we can retrieve the teamwork object
@@ -102,6 +107,11 @@ if ($workers) {
 
 
 my @mails = $linuxia->summary;
+
+unless (@mails) {
+    die "No message to export found!\n";
+}
+
 print join("\n", @mails);
 exit if $dry_run;
 

@@ -56,6 +56,7 @@ sub _create_object {
     my ($self, $name) = @_;
     die "No configuration found for $name" unless $self->configuration->{$name};
     my %credentials = %{$self->configuration->{$name}};
+    $credentials{conf_name} = $name;
     my $type = lc(delete $credentials{type});
     my %map = (
                rt => 'RT',

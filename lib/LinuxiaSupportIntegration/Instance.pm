@@ -57,11 +57,17 @@ They will return false if there is nothing set.
 
 =head2 INTERNALS
 
+=over 4
+
 =item message_cache
 
 =item clean_cache
 
+=item conf_name
 
+The name used in the configuration.
+
+=back
 
 =cut
 
@@ -83,6 +89,8 @@ has target_queue_field  => (is => 'ro');
 has target_name  => (is => 'rwp');
 has target_id    => (is => 'rwp');
 has target_queue => (is => 'rwp');
+
+has conf_name => (is => 'rwp');
 
 sub clean_cache {
     my $self = shift;
