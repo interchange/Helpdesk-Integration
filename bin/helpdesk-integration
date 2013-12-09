@@ -27,6 +27,8 @@ my ($subject,
     $source,
     $target,
     $todo_list,
+    $set_source_owner,
+    $assign_source_to,
     $bts_subject,
     $queue);
 
@@ -47,6 +49,8 @@ GetOptions (
             "debug"     => \$debug,
             "threshold=i" => \$threshold,
             "help"      => \$help,
+            "source-owner=s" => \$assign_source_to,
+            "give-source-to-worker" => \$set_source_owner,
             "bts-subject=s" => \$bts_subject,
            );
 
@@ -119,9 +123,29 @@ if ($todo_list) {
 
 
 # see if we can retrieve the teamwork object
+
+my @workers_array;
+
+
+
 if ($workers) {
-    $linuxia->target->assign_tickets(split(/\s?,\s?/, $workers));
+    @workers_array = split(/\s?,\s?/, $workers);
+    $linuxia->target->assign_tickets(@workers_array);
 }
+
+if ($set_source_owner) {
+    if (@workers_array) {
+        warn "Assigning source to workers\n";
+        $linuxia->source->assign_tickets(@workers_array);
+    }
+    else {
+        warn "No workers found to assign";
+    }
+}
+elsif ($assign_source_to) {
+    $linuxia->source->assign_tickets(split(/\s?,\s?/, $assign_source_to));
+}
+
 
 # print Dumper($linuxia->imap->folders_more);
 # $linuxia->imap->select("INBOX.RT-backup-Archive");
@@ -160,6 +184,13 @@ $linuxia->target->queue($queue) if $queue;
 
 $linuxia->target->is_comment($comment) if $comment;
 print $linuxia->execute, "\n";
+
+if ($set_source_owner || $assign_source_to) {
+    print "Setting source owner for $bts_ticket\n";
+    $linuxia->source->set_owner($bts_ticket);
+}
+
+
 exit;
 
 sub show_help {
@@ -286,6 +317,18 @@ Options for adding to RT/TeamWork
 
     Name or id of the current TeamWork project. Usually set in the
     configuration file, but you can override it using this option.
+
+  --source-owner <name>
+
+    Assign the source ticket to the specified user. It's quite
+    possible that RT refuse to do it, if the user is missing the
+    permission to own the tickets.
+
+  --give-source-to-worker
+
+    Boolean. If you specified --workers, you can try this to set the
+    owner of the source, assigning it to the same user you assigned in
+    the target.
 
   --force
 

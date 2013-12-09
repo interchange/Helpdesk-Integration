@@ -1,6 +1,7 @@
 package LinuxiaSupportIntegration::RT;
 use strict;
 use warnings;
+use Try::Tiny;
 use RT::Client::REST;
 
 use Moo;
@@ -240,6 +241,29 @@ sub search_target {
     my $self = shift;
     print "Searching messages\n";
     $self->parse_messages;
+}
+
+=head3 set_owner($ticket)
+
+Set the owner to the ticket passed as argument to the persons found in
+the C<_assign_to> arrayref (to be set with the assign_tickets method)
+
+=cut
+
+sub set_owner {
+    my ($self, $ticket) = @_;
+    my @workers = @{$self->_assign_to};
+    return unless @workers;
+    my $worker_string = join(",", @workers);
+    try {
+        $self->rt->edit(type => 'ticket',
+                        id => $ticket,
+                        set => {
+                                Owner => $worker_string,
+                               });
+    } catch {
+        warn "Couldn't assign $ticket to $worker_string: $_\n";
+    };
 }
 
 

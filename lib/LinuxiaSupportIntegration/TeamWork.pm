@@ -257,8 +257,8 @@ sub create_task {
                                   }
                   };
 
-    if (my $assigned = $self->_assign_to) {
-        $details->{'todo-item'}->{'responsible-party-id'} = $assigned;
+    if (my @assigned = @{$self->_assign_to}) {
+        $details->{'todo-item'}->{'responsible-party-id'} = join(",", @assigned);
     }
 
     die "Missing todo_lists id!" unless $id;
@@ -477,9 +477,6 @@ sub persons {
     }
 }
 
-has _assign_to => (is => 'rw',
-                   default => sub { return "" });
-
 sub assign_tickets {
     my ($self, @whos) = @_;
     my @ids;
@@ -502,7 +499,7 @@ sub assign_tickets {
         warn "Some ids where not assigned!"
     }
     if (@ids) {
-        $self->_assign_to(join(",", @ids));
+        $self->_assign_to(\@ids);
     }
 }
 

@@ -108,9 +108,11 @@ sub clean_cache {
 Try to set C<target_name>, C<target_id> and C<target_id> looking into
 the messages.
 
-=item assign_tickets
+=item assign_tickets(@workers).
 
-Assign the ticket to workers
+Assign the ticket to workers. This method just sets the internal
+C<_assign_to> accessor, and doesn't edit the ticket. Normally, the
+assignment is done on creation.
 
 =item archive_messages
 
@@ -128,7 +130,32 @@ The type of the object (each subclass should return its own)
 
 =cut
 
+has _assign_to => (is => 'rw',
+                   isa => sub {
+                       unless (ref($_[0]) and
+                               ref($_[0]) eq 'ARRAY') {
+                           die "Assign to should be an arrayref!";
+                       }
+                   },
+                   default => sub { return [] });
+
 sub assign_tickets {
+    my ($self, @whos) = @_;
+    my @ids;
+    foreach my $who (@whos) {
+        $who =~ s/^\s+//;
+        $who =~ s/\s+$//;
+        if ($who) {
+            push @ids, $who;
+        }
+    }
+    if (@ids) {
+        $self->_assign_to(\@ids);
+    }
+}
+
+sub set_owner {
+    warn "set_owner is not implemented for this system!\n";
     return;
 }
 
