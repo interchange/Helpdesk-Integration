@@ -194,8 +194,6 @@ sub get_projects {
         }
     }
     $self->projects(\%projects);
-    # check if we have a valid project inside the object
-    $self->find_project_id($self->project);
     if (%projects) {
         return $details->{projects};
     }
