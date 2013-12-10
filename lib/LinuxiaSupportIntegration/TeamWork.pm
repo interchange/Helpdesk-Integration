@@ -442,6 +442,21 @@ sub _check_hash {
             push @matches, $k;
         }
     }
+    # still nothing? do a lowercase comparison
+    unless (@matches) {
+        my $wanted = lc($id);
+        $wanted =~ s/^\s+//;
+        $wanted =~ s/\s+$//;
+        foreach my $k (keys %$hash) {
+            my $to_check = lc($hash->{$k});
+            $to_check =~ s/^\s+//;
+            $to_check =~ s/\s+$//;
+            if ($wanted eq $to_check) {
+                push @matches, $k;
+            }
+        }
+    }
+
     # print Dumper(\@matches);
 
     if (@matches > 1) {
