@@ -39,7 +39,7 @@ GetOptions (
             "bts-ticket=i" => \$bts_ticket,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
-            "todo-list=i" => \$todo_list,
+            "todo-list=s" => \$todo_list,
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "workers=s" => \$workers,
@@ -109,11 +109,11 @@ if ($project) {
 
 if ($todo_list) {
     if ($linuxia->target->type eq 'teamwork') {
-        if (!$ticket) {
-            $ticket = $todo_list;
+        if (!$queue) {
+            $queue = $todo_list;
         }
         else {
-            die "todo-list and ticket are alias, you set both, exiting\n";
+            die "todo-list and queue are alias, you set both, exiting\n";
         }
     }
     else {
@@ -290,7 +290,8 @@ Options for adding to RT/TeamWork
 
   --todo-list '<id>'
 
-    Alias for ticket when the target type is teamwork. Ignored otherwise.
+    Alias for queue when the target type is teamwork. Ignored
+    otherwise.
 
   --comment
 
