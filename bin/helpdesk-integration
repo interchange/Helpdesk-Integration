@@ -30,6 +30,7 @@ my ($subject,
     $set_source_owner,
     $assign_source_to,
     $bts_subject,
+    $gh_issue,
     $queue);
 
 GetOptions (
@@ -37,6 +38,7 @@ GetOptions (
             "target=s"  => \$target,
             "subject=s" => \$subject,
             "bts-ticket=i" => \$bts_ticket,
+            "gh-issue=i"   => \$gh_issue,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
             "todo-list=s" => \$todo_list,
@@ -88,9 +90,16 @@ elsif ($linuxia->source->type eq 'rt') {
     }
 }
 
+elsif ($linuxia->source->type eq 'github') {
+    unless ($gh_issue) {
+        die "Source is GH, but no --gh-issue was specified, exiting\n";
+    }
+}
+
+
 $linuxia->source->search_params({subject => $subject,
                                  from => $from,
-                                 ticket => $bts_ticket,
+                                 ticket => $bts_ticket || $gh_issue,
                                 });
 
 $linuxia->source->search_target;

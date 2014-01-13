@@ -114,9 +114,39 @@ sub comment {
 }
 
 sub parse_messages {
+    my $self = shift;
     # my $issue = $self->gh->issue;
     # print Dumper([ $issue->repos_issues($self->user, $self->queue) ]);
-    return;
+    my $id = $self->search_params->{ticket};
+    my $issue = $self->gh->issue;
+    $issue->set_default_user_repo($self->user, $self->queue);
+    my $main = $issue->issue($id);
+    my %detail = (
+                  date => $main->{created_at},
+                  from => $main->{user}->{login} || "nobody",
+                  subject => $main->{title},
+                  body => $main->{body},
+                 );
+    my @details = (LinuxiaSupportIntegration::Ticket->new(%detail));
+
+    # and now check the comments
+
+    my @comments = $issue->comments($id);
+    foreach my $cmt (@comments) {
+        print Dumper($cmt);
+        my %comment = (
+                       date => $cmt->{created_at},
+                       from => $cmt->{user}->{login} || "nobody",
+                       subject => "Comment on #$id",
+                       body => $cmt->{body},
+                      );
+        my $obj = LinuxiaSupportIntegration::Ticket->new(%comment);
+        push @details, $obj;
+    }
+
+    my @out = map { [ undef, $_ ] } @details;
+    $self->message_cache(\@out);
+    return @out;
 }
 
 sub type {
