@@ -88,8 +88,39 @@ sub create {
                                        title => $eml->subject,
                                        body => $eml->as_string,
                                       });
-    print Dumper($ticket);
+    return $ticket->{number},
+      "\nCreated GH issue $ticket->{html_url}";
 }
 
+sub create_comment {
+    my ($self, $eml) = @_;
+    my $issue = $self->gh->issue;
+    $issue->set_default_user_repo($self->user, $self->queue);
+    my $comment = $issue->create_comment($self->append,
+                                         {
+                                          body => $eml->as_string,
+                                         });
+    return "Created GH comment: " . $comment->{html_url};
+}
+
+sub correspond {
+    my ($self, @args) = @_;
+    return $self->create_comment(@args);
+}
+
+sub comment {
+    my ($self, @args) = @_;
+    return $self->create_comment(@args);
+}
+
+sub parse_messages {
+    # my $issue = $self->gh->issue;
+    # print Dumper([ $issue->repos_issues($self->user, $self->queue) ]);
+    return;
+}
+
+sub type {
+    return "github";
+}
 
 1;
