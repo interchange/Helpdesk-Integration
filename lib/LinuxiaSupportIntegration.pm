@@ -66,6 +66,15 @@ sub _create_object {
     my $class = $map{$type};
     die "Unsupported type $type!" unless $class;
     $class = __PACKAGE__ . '::' . $class;
+
+    # manage some aliases
+    if ($credentials{'todo-list'} && !$credentials{queue}) {
+        $credentials{queue} = delete $credentials{'todo-list'};
+    }
+    elsif ($credentials{'todo-list'}) {
+        warn "todo-list is an alias for queue and you set both! Using queue!\n";
+    }
+
     my $obj = $class->new(%credentials);
     print "Logging in with $class\n";
     $obj->login;
