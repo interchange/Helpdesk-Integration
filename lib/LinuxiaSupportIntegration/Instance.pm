@@ -2,7 +2,7 @@ package LinuxiaSupportIntegration::Instance;
 
 use strict;
 use warnings;
-
+use LinuxiaSupportIntegration::Ticket;
 use Moo;
 
 =head1 NAME

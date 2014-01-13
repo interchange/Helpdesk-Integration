@@ -2,12 +2,7 @@ package LinuxiaSupportIntegration;
 use strict;
 use warnings;
 
-use Net::IMAP::Client;
-use LinuxiaSupportIntegration::TeamWork;
-use LinuxiaSupportIntegration::RT;
-use LinuxiaSupportIntegration::IMAP;
-use LinuxiaSupportIntegration::Ticket;
-use Email::MIME;
+use Module::Load;
 use Error qw(try otherwise);
 use Data::Dumper;
 
@@ -66,6 +61,8 @@ sub _create_object {
     my $class = $map{$type};
     die "Unsupported type $type!" unless $class;
     $class = __PACKAGE__ . '::' . $class;
+    eval { load $class };
+    die "Couldn't load $class $@" if $@;
 
     # manage some aliases
     if ($credentials{'todo-list'} && !$credentials{queue}) {
