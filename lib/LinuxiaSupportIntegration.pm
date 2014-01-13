@@ -57,6 +57,7 @@ sub _create_object {
                rt => 'RT',
                imap => 'IMAP',
                teamwork => 'TeamWork',
+               github => 'GitHub',
               );
     my $class = $map{$type};
     die "Unsupported type $type!" unless $class;
@@ -65,11 +66,13 @@ sub _create_object {
     die "Couldn't load $class $@" if $@;
 
     # manage some aliases
-    if ($credentials{'todo-list'} && !$credentials{queue}) {
-        $credentials{queue} = delete $credentials{'todo-list'};
-    }
-    elsif ($credentials{'todo-list'}) {
-        warn "todo-list is an alias for queue and you set both! Using queue!\n";
+    foreach my $alias (qw/todo-list repo/) {
+        if ($credentials{$alias} && !$credentials{queue}) {
+            $credentials{queue} = delete $credentials{$alias};
+        }
+        elsif ($credentials{'todo-list'}) {
+            warn "$alias is an alias for queue and you set both! Using queue!\n";
+        }
     }
 
     my $obj = $class->new(%credentials);

@@ -193,6 +193,10 @@ sub type {
     return "dummy";
 }
 
+sub login {
+    return;
+}
+
 has append  => (is => 'rw');
 has queue   => (is => 'rw');
 has workers => (is => 'rw');

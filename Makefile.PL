@@ -17,6 +17,7 @@ WriteMakefile(
                   'Email::MIME' => 0,
                   'Error' => 0,
                   'RT::Client::REST' => 0.45,
+                  'Net::GitHub' => 0.47,
                   'JSON' => 0,
                   'LWP::UserAgent' => 0,
                   'Moo' => 0,
