@@ -122,14 +122,14 @@ if ($todo_list) {
 }
 
 
-# see if we can retrieve the teamwork object
-
-my @workers_array;
-
-
-
 if ($workers) {
-    @workers_array = split(/\s?,\s?/, $workers);
+  $linuxia->target->workers($workers);
+}
+
+# could come from the configuration too
+my @workers_array = $linuxia->target->list_workers;
+
+if (@workers_array) {
     $linuxia->target->assign_tickets(@workers_array);
 }
 
@@ -143,7 +143,7 @@ if ($set_source_owner) {
     }
 }
 elsif ($assign_source_to) {
-    $linuxia->source->assign_tickets(split(/\s?,\s?/, $assign_source_to));
+    $linuxia->source->assign_tickets(split(/\s*,\s*/, $assign_source_to));
 }
 
 

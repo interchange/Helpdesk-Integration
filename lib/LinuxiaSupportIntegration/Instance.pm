@@ -25,6 +25,20 @@ LinuxiaSupportIntegration::Instance - Base class for Helpdesk classes
 Each subclass has its own set of keys/values to retrive the messages
 to be copied to another instance.
 
+=item project
+
+The default project to use
+
+=item queue
+
+The default queue (also called todo-list) to use.
+
+=item workers
+
+The default workers for the instance. This is used only to store the
+defaults on object building. You have to call
+$self->assign_ticket($self->list_workers) to assign.
+
 =back
 
 RT instances can define the custom fields. Keys to be passed to the
@@ -114,6 +128,10 @@ Assign the ticket to workers. This method just sets the internal
 C<_assign_to> accessor, and doesn't edit the ticket. Normally, the
 assignment is done on creation.
 
+=item list_workers
+
+Return the workers as a list.
+
 =item archive_messages
 
 Archive the messages parsed
@@ -177,8 +195,19 @@ sub type {
 
 has append  => (is => 'rw');
 has queue   => (is => 'rw');
+has workers => (is => 'rw');
 has subject => (is => 'rw');
 has is_comment => (is => 'rw');
+
+sub list_workers {
+    my $self = shift;
+    my $workers = $self->workers;
+    return unless $workers;
+    my @works = split(/\s*,\s*/, $workers);
+    @works = grep { $_ } @works;
+    return @works;
+}
+
 
 1;
 
