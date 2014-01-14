@@ -31,6 +31,8 @@ my ($subject,
     $assign_source_to,
     $bts_subject,
     $gh_issue,
+    $tw_task,
+    $source_issue_id,
     $ignore_images,
     $queue);
 
@@ -40,6 +42,8 @@ GetOptions (
             "subject=s" => \$subject,
             "bts-ticket=i" => \$bts_ticket,
             "gh-issue=i"   => \$gh_issue,
+            "tw-task=i" => \$tw_task,
+            "source-ticket=i" => \$source_issue_id,
             "from=s"    => \$from,
             "ticket=i"  => \$ticket, # numeric
             "todo-list=s" => \$todo_list,
@@ -81,9 +85,6 @@ if ($ignore_images) {
 
 $linuxia->set_source($source || "imap");
 
-my $source_issue_id;
-
-
 if ($linuxia->source->type eq 'imap') {
     unless ($subject || $from) {
         warn "No search parameter specified! This would take the whole INBOX!\n";
@@ -92,20 +93,30 @@ if ($linuxia->source->type eq 'imap') {
     }
 }
 
-elsif ($linuxia->source->type eq 'rt') {
-    unless ($bts_ticket) {
-        die "Source is RT, but no --bts-ticket was specified, exiting\n";
-    }
-    $source_issue_id = $bts_ticket;
-}
+my $error_map = {
+                 rt => {
+                        ticket => $bts_ticket,
+                        name => "bts-ticket",
+                       },
+                 github => {
+                            ticket => $gh_issue,
+                            name => "gh-issue",
+                           },
+                 teamwork => {
+                              ticket => $tw_task,
+                              name => "tw-task",
+                             },
+                };
 
-elsif ($linuxia->source->type eq 'github') {
-    unless ($gh_issue) {
-        die "Source is GH, but no --gh-issue was specified, exiting\n";
+unless ($source_issue_id) {
+    my $type = $linuxia->source->type;
+    if (my $import_ticket = $error_map->{$type}) {
+        unless ($source_issue_id = $import_ticket->{ticket}) {
+            die "Source is $type, " .
+              "but no --$import_ticket->{name} nor --source-ticket was specified\n";
+        }
     }
-    $source_issue_id = $gh_issue;
 }
-
 
 $linuxia->source->search_params({subject => $subject,
                                  from => $from,
@@ -298,9 +309,27 @@ Options for fetching the messages:
     The mails with the from header containing the given string will be
     added to RT. It's relevant only if the source is an imap type.
 
+  --source-ticket
+
+    The id of the ticket to fetch from the source backend.
+
   --bts-ticket '<digit>'
 
     The ID of the ticket to fetch if the source is a rt type.
+    Alias for --source-ticket <digit>.
+
+  --gh-issue '<digit>'
+
+    The ID of the ticket to fetch if the source is a github type.
+    Usually in the github world it's referred as #<digit>.
+    Alias for --source-ticket <digit>.
+
+   --tw-task '<digit>'
+
+    The ID of the TW task to fetch if the source is a teamwork type.
+    The digit refers to the ID you can find in the url. E.g. the id of
+    https://test.teamworkpm.net/tasks/1298994 is 1298994
+
 
 Options for adding to RT/TeamWork
 
