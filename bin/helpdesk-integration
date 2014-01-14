@@ -75,6 +75,8 @@ my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
 
 $linuxia->set_source($source || "imap");
 
+my $source_issue_id;
+
 
 if ($linuxia->source->type eq 'imap') {
     unless ($subject || $from) {
@@ -88,18 +90,20 @@ elsif ($linuxia->source->type eq 'rt') {
     unless ($bts_ticket) {
         die "Source is RT, but no --bts-ticket was specified, exiting\n";
     }
+    $source_issue_id = $bts_ticket;
 }
 
 elsif ($linuxia->source->type eq 'github') {
     unless ($gh_issue) {
         die "Source is GH, but no --gh-issue was specified, exiting\n";
     }
+    $source_issue_id = $gh_issue;
 }
 
 
 $linuxia->source->search_params({subject => $subject,
                                  from => $from,
-                                 ticket => $bts_ticket || $gh_issue,
+                                 ticket => $source_issue_id,
                                 });
 
 $linuxia->source->search_target;
@@ -195,8 +199,8 @@ $linuxia->target->is_comment($comment) if $comment;
 print $linuxia->execute, "\n";
 
 if ($set_source_owner || $assign_source_to) {
-    print "Setting source owner for $bts_ticket\n";
-    $linuxia->source->set_owner($bts_ticket);
+    print "Setting source owner for $source_issue_id\n";
+    $linuxia->source->set_owner($source_issue_id);
 }
 
 

@@ -209,7 +209,14 @@ sub assign_tickets {
     }
 }
 
-
+sub set_owner {
+    my ($self, $issue_id) = @_;
+    my ($worker) = @{$self->_assign_to};
+    return unless $worker;
+    my $issue = $self->gh->issue;
+    $issue->set_default_user_repo($self->user, $self->queue);
+    $issue->update_issue($issue_id, { assignee => $worker });
+}
 
 
 1;
