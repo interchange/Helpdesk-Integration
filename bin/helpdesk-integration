@@ -108,12 +108,16 @@ my $error_map = {
                              },
                 };
 
-unless ($source_issue_id) {
-    my $type = $linuxia->source->type;
-    if (my $import_ticket = $error_map->{$type}) {
+if (my $import_ticket = $error_map->{ $linuxia->source->type }) {
+    if ($source_issue_id) {
+        if ($import_ticket->{ticket}) {
+            die "--$import_ticket->{name} " .
+              "is conflicting with --source-ticket (its alias)";
+        }
+    }
+    else {
         unless ($source_issue_id = $import_ticket->{ticket}) {
-            die "Source is $type, " .
-              "but no --$import_ticket->{name} nor --source-ticket was specified\n";
+            die "No --$import_ticket->{name} nor --source-ticket was specified\n";
         }
     }
 }
