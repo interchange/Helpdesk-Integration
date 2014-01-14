@@ -84,10 +84,14 @@ sub create {
     my ($self, $eml) = @_;
     my $issue = $self->gh->issue;
     $issue->set_default_user_repo($self->user, $self->queue);
-    my $ticket = $issue->create_issue({
-                                       title => $eml->subject,
-                                       body => $eml->as_string,
-                                      });
+    my %details = (
+                   title => $eml->subject,
+                   body => $eml->as_string,
+                  );
+    if (my @assigned = @{$self->_assign_to}) {
+        $details{assignee} = $assigned[0]; # guaranteed to be only one.
+    }
+    my $ticket = $issue->create_issue(\%details);
     return $ticket->{number},
       "\nCreated GH issue $ticket->{html_url}";
 }
@@ -152,5 +156,60 @@ sub parse_messages {
 sub type {
     return "github";
 }
+
+=head2 assign_tickets
+
+The GitHub API seems not to permit multiple workers to be assigned.
+Hence, we return only the first, and if more are found, a warning is
+issued.
+
+http://developer.github.com/v3/issues/#create-an-issue
+
+The API doesn't return emails, so username has to be provided.
+
+=cut
+
+sub assign_tickets {
+    my ($self, @workers) = @_;
+    my @out;
+    my $repos = $self->gh->repos;
+    $repos->set_default_user_repo($self->user, $self->queue);
+    my $repo = $repos->get;
+    my @assignees = ($repo->{owner}->{login});
+    foreach my $collaborator ($repos->collaborators) {
+        # warn Dumper($collaborator);
+        next if $collaborator->{login} eq $repo->{owner}->{login};
+        push @assignees, $collaborator->{login};
+
+    }
+    foreach my $worker (@workers) {
+        my $found;
+        foreach my $avail (@assignees) {
+            if ($avail eq $worker) {
+                $found = $avail;
+                last;
+            }
+        }
+        if ($found) {
+            push @out, $found;
+        }
+        else {
+            warn "WARNING: $worker not found in assignees!\n";
+        }
+    }
+    if (@out > 1) {
+        warn "Multiple assignment found, using the first: $out[0]\n";
+        @out = ($out[0]);
+    }
+    if (@out) {
+        $self->_assign_to(\@out);
+    }
+    else {
+        warn "Available assignees: " . join(", ", @assignees) . "\n";
+    }
+}
+
+
+
 
 1;
