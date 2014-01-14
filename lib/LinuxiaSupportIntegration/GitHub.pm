@@ -137,7 +137,7 @@ sub parse_messages {
 
     my @comments = $issue->comments($id);
     foreach my $cmt (@comments) {
-        print Dumper($cmt);
+        # print Dumper($cmt);
         my %comment = (
                        date => $cmt->{created_at},
                        from => $cmt->{user}->{login} || "nobody",
@@ -149,7 +149,6 @@ sub parse_messages {
     }
 
     my @out = map { [ undef, $_ ] } @details;
-    $self->message_cache(\@out);
     return @out;
 }
 

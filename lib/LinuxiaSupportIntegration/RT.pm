@@ -43,7 +43,7 @@ sub rt {
     my $self = shift;
     my $rt = $self->rt_obj;
     unless ($rt) {
-        print "RT object empty, creating\n";
+        # print "RT object empty, creating\n";
         $rt = RT::Client::REST->new(server => $self->server,
                                     timeout => $self->timeout);
         $self->_set_rt_obj($rt);
