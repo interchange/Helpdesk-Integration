@@ -119,9 +119,14 @@ sub comment {
 
 sub parse_messages {
     my $self = shift;
+    my $id = $self->search_params->{ticket};
+    return unless defined $id;
+    if ($self->message_cache->{$id}) {
+        warn "found message_cache\n";
+        return @{ $self->message_cache->{$id} };
+    }
     # my $issue = $self->gh->issue;
     # print Dumper([ $issue->repos_issues($self->user, $self->queue) ]);
-    my $id = $self->search_params->{ticket};
     my $issue = $self->gh->issue;
     $issue->set_default_user_repo($self->user, $self->queue);
     my $main = $issue->issue($id);
@@ -149,6 +154,7 @@ sub parse_messages {
     }
 
     my @out = map { [ undef, $_ ] } @details;
+    $self->message_cache({ $id => \@out});
     return @out;
 }
 

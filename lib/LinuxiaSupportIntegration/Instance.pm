@@ -95,7 +95,8 @@ has search_params => (is => 'rw',
                             unless (ref($_[0]) && ref($_[0]) eq 'HASH');
                       });
 
-has message_cache => (is => 'rw');
+has message_cache => (is => 'rw',
+                      default => sub { return {} });
 has target_name_field   => (is => 'ro');
 has target_id_field     => (is => 'ro');
 has target_queue_field  => (is => 'ro');
@@ -108,7 +109,7 @@ has conf_name => (is => 'rwp');
 
 sub clean_cache {
     my $self = shift;
-    $self->message_cache(undef);
+    $self->message_cache({});
 }
 
 # No op methods, to be override by subclasses

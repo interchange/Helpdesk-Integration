@@ -119,12 +119,12 @@ sub _message_type_should_be_relayed {
 
 sub parse_messages {
     my $self = shift;
-    if ($self->message_cache) {
-        warn "found message_cache\n";
-        return @{ $self->message_cache };
-    }
     my $ticket = $self->search_params->{ticket};
     return unless defined $ticket;
+    if ($self->message_cache->{$ticket}) {
+        warn "found message_cache\n";
+        return @{ $self->message_cache->{$ticket} };
+    }
     my @trxs = $self->rt->get_transaction_ids(parent_id => $ticket, type => 'ticket');
     my $fullticket = $self->rt->show(type => 'ticket', id => $ticket);
     die "No ticket $ticket found" unless $fullticket;
@@ -227,7 +227,7 @@ sub parse_messages {
     # mimic the output of parse_mails from IMAP, set index undef
     # so we don't end moving mails around.
     my @out = map { [ undef, $_ ] } @details;
-    $self->message_cache(\@out);
+    $self->message_cache({ $ticket => \@out });
     return @out;
 }
 

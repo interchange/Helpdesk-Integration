@@ -519,6 +519,11 @@ sub assign_tickets {
 sub parse_messages {
     my $self = shift;
     my $id = $self->search_params->{ticket};
+    return unless defined $id;
+    if ($self->message_cache->{$id}) {
+        warn "found message_cache\n";
+        return @{ $self->message_cache->{$id} };
+    }
     my $res = $self->_do_api_request(get => "/todo_items/$id.json");
     return unless $res;
     my $task = decode_json($res->decoded_content);
@@ -556,7 +561,9 @@ sub parse_messages {
             warn "Couldn't retrieve the comments for task $id!\n"
         }
     }
-    return map { [ undef, $_ ] } @items;
+    my @out = map { [ undef, $_ ] } @items;
+    $self->message_cache({ $id => \@out });
+    return @out;
 }
 
 has _people_cache => (is => 'ro',
