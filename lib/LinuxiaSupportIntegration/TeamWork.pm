@@ -516,6 +516,40 @@ sub assign_tickets {
     }
 }
 
+sub _parse_attachments {
+    my ($self, $dets) = @_;
+    # because to add fun, in the task it's attachments-count, in the
+    # comment attachments_count...
+    return unless ($dets->{'attachments-count'} || $dets->{attachments_count});
+    my @out;
+
+    # for unknown reasons, we should try to download without the
+    # stored authentication.
+    my $ua = LWP::UserAgent->new;
+
+    foreach my $att (@{$dets->{attachments}}) {
+        my $id = $att->{id};
+        # print "Found file $id\n";
+        # at some point these raw request should be wrapped in a
+        # module to get a cleaner interface, like for GH, but for now
+        # will do
+        my $res = $self->_do_api_request(get => "/files/$id.json");
+        next unless $res;
+
+        my $file = decode_json($res->decoded_content);
+        if (my $url = $file->{file}->{'download-URL'}) {
+            my $filebody = $ua->get($url);
+            push @out, [$file->{file}->{name}, $filebody->content];
+        }
+    }
+    if (@out) {
+        return \@out
+    }
+    else {
+        return;
+    }
+}
+
 sub parse_messages {
     my $self = shift;
     my $id = $self->search_params->{ticket};
@@ -537,6 +571,9 @@ sub parse_messages {
                   date => $main->{'created-on'},
                   from => $self->user_email($main->{'creator-id'}),
                  );
+    if (my $atts = $self->_parse_attachments($main)) {
+        $detail{attachments} = $atts;
+    }
     # print Dumper(\%detail);
     push @items, $iclass->new(%detail);
     my $comment_count = $main->{'comments-count'};
@@ -554,6 +591,9 @@ sub parse_messages {
                                subject => "Comment on $id",
                               );
                 # print Dumper(\%comment);
+                if (my $atts = $self->_parse_attachments($cmt)) {
+                    $comment{attachments} = $atts;
+                }
                 push @items, $iclass->new(%comment);
             }
         }

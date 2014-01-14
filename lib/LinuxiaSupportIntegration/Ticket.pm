@@ -30,6 +30,7 @@ use Moo;
 use File::Temp;
 use File::Spec;
 use File::Slurp;
+use File::Basename qw/fileparse/;
 
 has body => (is => 'rw',
              default => sub { return "" });
@@ -97,7 +98,16 @@ sub attachments_filenames {
     my $dir = $self->_tmpdir->dirname;
     my @filenames;
     foreach my $att (@strings) {
-        my $dest = File::Spec->catfile($dir, $att->[0]);
+        my ($provided_filename, $directories, $suffix) = fileparse($att->[0]);
+        unless ($provided_filename and $provided_filename =~ m/\w/) {
+            warn "Skipping filename without a name\n";
+            next;
+        }
+        if ($provided_filename =~ m/^\./) {
+            warn "Skipping hidden filename $provided_filename\n";
+            next;
+        }
+        my $dest = File::Spec->catfile($dir, $provided_filename);
         die "Cannot write $dest" unless (write_file($dest, $att->[1]));
         push @filenames, $dest;
     }
