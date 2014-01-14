@@ -46,6 +46,31 @@ has configuration => (is => 'ro',
 
 has target => (is => 'rwp');
 has source => (is => 'rwp');
+has ignore_images => (is => 'rw',
+                      default => sub { return 0 });
+
+=head2 ignore_images
+
+If true, don't check if the target backend can handle images (will be
+ignored).
+
+=head2 error
+
+When the main C<execute> loop fails, the error is set. It will be an
+arrayref where the first element is the error code, and the second the
+error string.
+
+Error codes:
+
+=over 4
+
+=item no_image_support
+
+=back
+
+=cut
+
+has error => (is => 'rwp');
 
 sub _create_object {
     my ($self, $name) = @_;
@@ -115,7 +140,22 @@ sub execute {
     my $self = shift;
     my @archive;
     my @messages;
-    foreach my $mail ($self->source->parse_messages) {
+
+    my @mails = $self->source->parse_messages;
+
+    # scan the mails and looks if we have attachments and if we can support them
+    if (!$self->ignore_images and
+        !$self->target->image_upload_support) {
+        foreach my $m (@mails) {
+            if (@{$m->[1]->attachments}) {
+                my $subject = $m->[1]->subject;
+                $self->_set_error([no_image_support => "$subject: has images!"]);
+                return;
+            }
+        }
+    }
+
+    foreach my $mail (@mails) {
         my $id = $mail->[0];
         my $eml = $mail->[1];
         die "Unexpected failure" unless $eml;

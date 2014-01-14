@@ -31,6 +31,7 @@ my ($subject,
     $assign_source_to,
     $bts_subject,
     $gh_issue,
+    $ignore_images,
     $queue);
 
 GetOptions (
@@ -53,6 +54,7 @@ GetOptions (
             "help"      => \$help,
             "source-owner=s" => \$assign_source_to,
             "give-source-to-worker" => \$set_source_owner,
+            "ignore-images" => \$ignore_images,
             "bts-subject=s" => \$bts_subject,
            );
 
@@ -72,6 +74,10 @@ die "Bad configuration file $conf_file" unless $conf;
 
 my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
                                              configuration => $conf);
+
+if ($ignore_images) {
+    $linuxia->ignore_images(1);
+}
 
 $linuxia->set_source($source || "imap");
 
@@ -196,7 +202,26 @@ $queue ||= $linuxia->source->target_queue;
 $linuxia->target->queue($queue) if $queue;
 
 $linuxia->target->is_comment($comment) if $comment;
-print $linuxia->execute, "\n";
+
+my $out = $linuxia->execute;
+
+print "\n";
+
+if ($out) {
+    print "$out\n";
+}
+
+elsif (my $err = $linuxia->error) {
+    if ($err->[0] eq 'no_image_support') {
+        print "Couldn't move tickets because the backend doesn't support images\n";
+        print $err->[1] . "\n";
+        print "Use the --ignore-images switch to override\n";
+        exit 2;
+    }
+    else {
+        die $err->[1];
+    }
+}
 
 if ($set_source_owner || $assign_source_to) {
     print "Setting source owner for $source_issue_id\n";
