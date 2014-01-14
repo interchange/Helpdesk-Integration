@@ -235,6 +235,10 @@ sub type {
     return "rt";
 }
 
+sub image_upload_support {
+    return 1;
+}
+
 # search_target will just call parse_messages, which in turn will put
 # the messages in the cache and set target_name and target_id, if any
 sub search_target {

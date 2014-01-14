@@ -520,4 +520,8 @@ sub type {
     return "teamwork";
 }
 
+sub image_upload_support {
+    return 1;
+}
+
 1;

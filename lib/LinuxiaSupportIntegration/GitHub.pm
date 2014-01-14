@@ -156,6 +156,10 @@ sub type {
     return "github";
 }
 
+sub image_upload_support {
+    return 0;
+}
+
 =head2 assign_tickets
 
 The GitHub API seems not to permit multiple workers to be assigned.

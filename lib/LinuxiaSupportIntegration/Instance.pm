@@ -144,6 +144,10 @@ Set the project (if supported by the backed)
 
 The type of the object (each subclass should return its own) 
 
+=item image_upload_support
+
+Return true if the class support image upload
+
 =back
 
 =cut
@@ -210,6 +214,10 @@ sub list_workers {
     my @works = split(/\s*,\s*/, $workers);
     @works = grep { $_ } @works;
     return @works;
+}
+
+sub image_upload_support {
+    return 0;
 }
 
 
