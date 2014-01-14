@@ -271,18 +271,18 @@ sub create_task {
     }
 }
 
-=head2 create_comment($id, $body, $email, $opts)
+=head2 create_comment($email)
 
-Create comment on task with id $id, with body $body from email object
-$email. $opts is a hashref, but it's currently unused.
+Create comment on current task (retrieved from $self->append), using
+the data stored in the object passed to the method.
 
 This is aliased as
 
 =over 4
 
-=item linuxia_correspond
+=item correspond
 
-=item linuxia_comment
+=item comment
 
 =back
 
@@ -341,9 +341,9 @@ sub comment {
     return $self->create_comment(@args);
 }
 
-=head2 linuxia_create($body, $eml, $opts)
+=head2 create($eml)
 
-Create a task in the $opts->{queue} task list, which will be created
+Create a task in the $self->queue task list, which will be created
 if it does not exist.
 
 It ends up calling C<create_task> and returns its returning value (the
