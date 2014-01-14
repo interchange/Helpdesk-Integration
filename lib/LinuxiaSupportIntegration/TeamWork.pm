@@ -516,6 +516,77 @@ sub assign_tickets {
     }
 }
 
+sub parse_messages {
+    my $self = shift;
+    my $id = $self->search_params->{ticket};
+    my $res = $self->_do_api_request(get => "/todo_items/$id.json");
+    return unless $res;
+    my $task = decode_json($res->decoded_content);
+    # print Dumper($task);
+    my $main = $task->{'todo-item'};
+    my @items;
+    my $iclass = 'LinuxiaSupportIntegration::Ticket';
+    my %detail = (
+                  subject => $main->{content},
+                  body => $main->{description},
+                  date => $main->{'created-on'},
+                  from => $self->user_email($main->{'creator-id'}),
+                 );
+    # print Dumper(\%detail);
+    push @items, $iclass->new(%detail);
+    my $comment_count = $main->{'comments-count'};
+
+    if ($comment_count) {
+        my $url = "/todo_items/$id/comments.json?pageSize=$comment_count";
+        my $res = $self->_do_api_request(get => $url);
+        if ($res) {
+            my $json = decode_json($res->decoded_content);
+            foreach my $cmt (@{$json->{comments}}) {
+                my %comment = (
+                               date => $cmt->{datetime},
+                               body => $cmt->{body},
+                               from => $self->user_email($cmt->{'author-id'}),
+                               subject => "Comment on $id",
+                              );
+                # print Dumper(\%comment);
+                push @items, $iclass->new(%comment);
+            }
+        }
+        else {
+            warn "Couldn't retrieve the comments for task $id!\n"
+        }
+    }
+    return map { [ undef, $_ ] } @items;
+}
+
+has _people_cache => (is => 'ro',
+                      default => sub { return {} });
+
+sub user_email {
+    my ($self, $id) = @_;
+    return $self->user_details($id)->{'email-address'};
+}
+
+sub user_details {
+    my ($self, $id) = @_;
+    my $person_cache = $self->_people_cache;
+    if (!exists $person_cache->{$id}) {
+        # not found in cache? do the request
+        my $res = $self->_do_api_request(get => "/people/$id.json");
+        if ($res) {
+            my $person = decode_json($res->decoded_content);
+            # print Dumper($person->{person});
+            $person_cache->{$id} = $person->{person};
+        }
+        else {
+            $person_cache->{$id} = {}; # so we don't spam requests for
+                                       # users which we can't get.
+        }
+    }
+    return $person_cache->{$id};
+}
+
+
 sub type {
     return "teamwork";
 }
