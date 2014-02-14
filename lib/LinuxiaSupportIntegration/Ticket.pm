@@ -87,10 +87,10 @@ sub summary {
                     "\nSubject:", $self->subject,
                     "\n" . $self->_short_body);
     if (my $start = $self->start) {
-        $body .= "\nStart: $start";
+        $body .= "\nStart: " . localtime($start);
     }
     if (my $due = $self->due) {
-        $body .= "\nDue: $due";
+        $body .= "\nDue: " . localtime($due);
     }
     $body .= "\n";
     return $body;

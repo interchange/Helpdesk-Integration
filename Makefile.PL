@@ -22,6 +22,7 @@ WriteMakefile(
                   'LWP::UserAgent' => 0,
                   'Moo' => 0,
                   'YAML' => 0,
+                  'Date::Parse' => 0,
     },
     EXE_FILES => [
                   'bin/helpdesk-integration',

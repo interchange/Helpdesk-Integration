@@ -5,6 +5,7 @@ use warnings;
 use JSON;
 use LWP::UserAgent;
 use Data::Dumper;
+use Date::Parse;
 
 =head1 NAME
 
@@ -569,8 +570,8 @@ sub parse_messages {
                   subject => $main->{content},
                   body => $main->{description},
                   date => $main->{'created-on'},
-                  due => $main->{'due-date'},
-                  start => $main->{'start-date'},
+                  due => str2time($main->{'due-date'}),
+                  start => str2time($main->{'start-date'}),
                   from => $self->user_email($main->{'creator-id'}),
                  );
     if (my $atts = $self->_parse_attachments($main)) {
