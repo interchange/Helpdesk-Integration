@@ -569,6 +569,8 @@ sub parse_messages {
                   subject => $main->{content},
                   body => $main->{description},
                   date => $main->{'created-on'},
+                  due => $main->{'due-date'},
+                  start => $main->{'start-date'},
                   from => $self->user_email($main->{'creator-id'}),
                  );
     if (my $atts = $self->_parse_attachments($main)) {

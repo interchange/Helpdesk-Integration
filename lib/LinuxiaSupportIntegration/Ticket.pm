@@ -41,6 +41,12 @@ has subject => (is => 'rw',
 has date => (is => 'rw',
              default => sub { return "" });
 
+has start => (is => 'rw',
+              default => sub { return "" });
+
+has due => (is => 'rw',
+            default => sub { return "" });
+
 has attachments => (is => 'rw',
                    default => sub { return [] });
 
@@ -80,6 +86,13 @@ sub summary {
                     $self->date,
                     "\nSubject:", $self->subject,
                     "\n" . $self->_short_body);
+    if (my $start = $self->start) {
+        $body .= "\nStart: $start";
+    }
+    if (my $due = $self->due) {
+        $body .= "\nDue: $due";
+    }
+    $body .= "\n";
     return $body;
 }
 

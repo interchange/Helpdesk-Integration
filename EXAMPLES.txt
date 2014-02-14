@@ -70,3 +70,8 @@ set -e
 #  todo-list in the Task list "Hello"
 
 bin/helpdesk-integration --source rt --bts-ticket 155 
+
+# Inspect a TW ticket
+
+./bin/helpdesk-integration --source teamwork --source-ticket 1405969 --dry-run
+

@@ -177,6 +177,8 @@ sub parse_messages {
     my %ticket_details = (
                           date => $fullticket->{Created},
                           from => $fullticket->{Creator},
+                          start => $fullticket->{Starts},
+                          due   => $fullticket->{Due},
                           subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
                          );
