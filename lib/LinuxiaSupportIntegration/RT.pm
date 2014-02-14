@@ -4,6 +4,7 @@ use warnings;
 use Try::Tiny;
 use RT::Client::REST;
 use Date::Parse;
+use DateTime;
 
 use Moo;
 extends 'LinuxiaSupportIntegration::Instance';
@@ -273,6 +274,47 @@ sub set_owner {
     };
 }
 
+=head3 Timing
+
+The following two methods set the Starts and the Due dates in the
+given ticket. The first argument is the ticket, the second the Unix
+epoch time. You can get the epoch out of almost any formatted date
+with the L<Date::Parse> module (str2time).
+
+=over 4
+
+=item set_start_date($ticket, $epoch)
+
+=item set_due_date($ticket, $epoch)
+
+=back
+
+=cut
+
+sub set_start_date {
+    my ($self, $ticket, $date) = @_;
+    $self->_set_date_field_ticket(Starts => $ticket, $date);
+}
+
+sub set_due_date {
+    my ($self, $ticket, $date) = @_;
+    $self->_set_date_field_ticket(Due => $ticket, $date);
+}
+
+sub _set_date_field_ticket {
+    my ($self, $field, $ticket, $epoch) = @_;
+    return unless $field && $ticket && $epoch;
+    my $date = DateTime->from_epoch(epoch => $epoch)->iso8601;
+    try {
+        $self->rt->edit(type => 'ticket',
+                        id => $ticket,
+                        set => {
+                                $field => $date,
+                               });
+    } catch {
+        warn "Couldn't set $field to " . localtime($epoch) . " for $ticket: $_\n";
+    };
+}
 
 1;
 

@@ -9,6 +9,7 @@ use LinuxiaSupportIntegration;
 use YAML qw/LoadFile Dump/;
 use Getopt::Long;
 use Data::Dumper;
+use Date::Parse;
 use Cwd;
 binmode STDOUT, ":encoding(utf-8)";
 
@@ -28,6 +29,8 @@ my ($subject,
     $target,
     $todo_list,
     $set_source_owner,
+    $set_start_date,
+    $set_due_date,
     $assign_source_to,
     $bts_subject,
     $gh_issue,
@@ -60,6 +63,8 @@ GetOptions (
             "give-source-to-worker" => \$set_source_owner,
             "ignore-images" => \$ignore_images,
             "bts-subject=s" => \$bts_subject,
+            "start-date=s"  => \$set_start_date,
+            "due-date=s"  => \$set_due_date,
            );
 
 $threshold ||= 5;
@@ -121,6 +126,23 @@ if (my $import_ticket = $error_map->{ $linuxia->source->type }) {
         }
     }
 }
+
+if ($set_start_date || $set_due_date) {
+    die "Missing id to set the date!" unless $source_issue_id;
+
+    my %todo = (
+                set_start_date => str2time($set_start_date),
+                set_due_date   => str2time($set_due_date),
+               );
+
+    foreach my $k (keys %todo) {
+        if (my $epoch = $todo{$k}) {
+            $linuxia->source->$k( $source_issue_id, $epoch );
+        }
+    }
+    $dry_run = 1;
+}
+
 
 $linuxia->source->search_params({subject => $subject,
                                  from => $from,
@@ -333,6 +355,14 @@ Options for fetching the messages:
     The ID of the TW task to fetch if the source is a teamwork type.
     The digit refers to the ID you can find in the url. E.g. the id of
     https://test.teamworkpm.net/tasks/1298994 is 1298994
+
+Options for setting the Start and Due dates. These two options operate
+on the source instance and after setting the date the script will
+print the summary and exit.
+
+  --start-date '<string>'
+
+  --due-date '<string>'
 
 
 Options for adding to RT/TeamWork
