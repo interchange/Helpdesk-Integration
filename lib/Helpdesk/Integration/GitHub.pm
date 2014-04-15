@@ -1,4 +1,4 @@
-package LinuxiaSupportIntegration::GitHub;
+package Helpdesk::Integration::GitHub;
 use strict;
 use warnings;
 
@@ -6,7 +6,7 @@ use Net::GitHub;
 use Data::Dumper;
 
 use Moo;
-extends 'LinuxiaSupportIntegration::Instance';
+extends 'Helpdesk::Integration::Instance';
 
 =head2 ACCESSORS
 
@@ -136,7 +136,7 @@ sub parse_messages {
                   subject => $main->{title},
                   body => $main->{body},
                  );
-    my @details = (LinuxiaSupportIntegration::Ticket->new(%detail));
+    my @details = (Helpdesk::Integration::Ticket->new(%detail));
 
     # and now check the comments
 
@@ -149,7 +149,7 @@ sub parse_messages {
                        subject => "Comment on #$id",
                        body => $cmt->{body},
                       );
-        my $obj = LinuxiaSupportIntegration::Ticket->new(%comment);
+        my $obj = Helpdesk::Integration::Ticket->new(%comment);
         push @details, $obj;
     }
 

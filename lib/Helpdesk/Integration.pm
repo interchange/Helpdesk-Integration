@@ -1,4 +1,4 @@
-package LinuxiaSupportIntegration;
+package Helpdesk::Integration;
 use strict;
 use warnings;
 
@@ -10,7 +10,7 @@ our $VERSION = '0.01';
 
 =head1 NAME
 
-LinuxiaSupportIntegration -- moving request tickets across systems
+Helpdesk::Integration -- moving request tickets across systems
 
 =cut
 

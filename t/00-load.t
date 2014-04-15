@@ -7,14 +7,14 @@ use Test::More;
 plan tests => 6;
 
 BEGIN {
-    for (qw/LinuxiaSupportIntegration
-            LinuxiaSupportIntegration::IMAP
-            LinuxiaSupportIntegration::RT
-            LinuxiaSupportIntegration::GitHub
-            LinuxiaSupportIntegration::TeamWork
-            LinuxiaSupportIntegration::Instance/) {
+    for (qw/Helpdesk::Integration
+            Helpdesk::Integration::IMAP
+            Helpdesk::Integration::RT
+            Helpdesk::Integration::GitHub
+            Helpdesk::Integration::TeamWork
+            Helpdesk::Integration::Instance/) {
         use_ok( $_ ) || print "Bail out!\n";
     }
 }
 
-diag( "Testing LinuxiaSupportIntegration $LinuxiaSupportIntegration::VERSION, Perl $], $^X" );
+diag( "Testing Helpdesk::Integration $Helpdesk::Integration::VERSION, Perl $], $^X" );

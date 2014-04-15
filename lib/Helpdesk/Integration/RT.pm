@@ -1,4 +1,4 @@
-package LinuxiaSupportIntegration::RT;
+package Helpdesk::Integration::RT;
 use strict;
 use warnings;
 use Try::Tiny;
@@ -7,7 +7,7 @@ use Date::Parse;
 use DateTime;
 
 use Moo;
-extends 'LinuxiaSupportIntegration::Instance';
+extends 'Helpdesk::Integration::Instance';
 
 has rt_obj => (is => 'rwp');
 
@@ -101,7 +101,7 @@ sub correspond {
 
 Access via REST the ticket $ticket and return a list of arrayrefs.
 Each arrayref has two elements: the first is always undef, the second
-is a L<LinuxiaSupportIntegration::RT::Mail> object.
+is a L<Helpdesk::Integration::RT::Mail> object.
 
 The first element is undef because we don't want to move around mails
 when we look into RT.
@@ -184,7 +184,7 @@ sub parse_messages {
                           subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
                          );
-    my @details = (LinuxiaSupportIntegration::Ticket->new(%ticket_details));
+    my @details = (Helpdesk::Integration::Ticket->new(%ticket_details));
     # probably here we want to take the first mail and dump it as body
     # of the ticket creation action.
     my @attachments = $self->rt->get_attachment_ids(id => $ticket);
@@ -218,7 +218,7 @@ sub parse_messages {
             }
         }
         next unless $self->_message_type_should_be_relayed($mail->{Type});
-        my $obj = LinuxiaSupportIntegration::Ticket->new(
+        my $obj = Helpdesk::Integration::Ticket->new(
                                                          date => $mail->{Created},
                                                          body => $mail->{Content},
                                                          from => $mail->{Creator},

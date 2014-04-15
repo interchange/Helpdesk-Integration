@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-use LinuxiaSupportIntegration;
+use Helpdesk::Integration;
 use YAML qw/LoadFile Dump/;
 use Getopt::Long;
 use Data::Dumper;
@@ -81,7 +81,7 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = LinuxiaSupportIntegration->new(debug_mode => $debug,
+my $linuxia = Helpdesk::Integration->new(debug_mode => $debug,
                                              configuration => $conf);
 
 if ($ignore_images) {

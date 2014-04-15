@@ -1,8 +1,8 @@
-package LinuxiaSupportIntegration::Ticket;
+package Helpdesk::Integration::Ticket;
 
 =head1 NAME
 
-LinuxiaSupportIntegration::Ticket -- generic ticket class
+Helpdesk::Integration::Ticket -- generic ticket class
 
 =head1 ACCESSORS
 

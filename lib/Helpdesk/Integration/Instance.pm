@@ -1,13 +1,13 @@
-package LinuxiaSupportIntegration::Instance;
+package Helpdesk::Integration::Instance;
 
 use strict;
 use warnings;
-use LinuxiaSupportIntegration::Ticket;
+use Helpdesk::Integration::Ticket;
 use Moo;
 
 =head1 NAME
 
-LinuxiaSupportIntegration::Instance - Base class for Helpdesk classes
+Helpdesk::Integration::Instance - Base class for Helpdesk classes
 
 
 =head1 ACCESSORS/METHODS

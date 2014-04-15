@@ -3,11 +3,11 @@ use 5.010001;
 use strict;
 use warnings;
 use Test::More;
-use LinuxiaSupportIntegration::Instance;
+use Helpdesk::Integration::Instance;
 
 plan tests => 2;
 
-my $instance = LinuxiaSupportIntegration::Instance->new;
+my $instance = Helpdesk::Integration::Instance->new;
 
 $instance->message_cache([ [1 => "test"], [ 2 => "test2"] ]);
 

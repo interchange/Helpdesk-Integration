@@ -1,4 +1,4 @@
-package LinuxiaSupportIntegration::TeamWork;
+package Helpdesk::Integration::TeamWork;
 
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ use Date::Parse;
 
 =head1 NAME
 
-LinuxiaSupportIntegration::TeamWork - Perl module to interact with the
+Helpdesk::Integration::TeamWork - Perl module to interact with the
 TeamWork API (using JSON).
 
 =head1 DESCRIPTION
@@ -54,7 +54,7 @@ The name or the id of the project.
 
 use Moo;
 
-extends 'LinuxiaSupportIntegration::Instance';
+extends 'Helpdesk::Integration::Instance';
 
 has password => (is => 'ro',
                 required => 1);
@@ -565,7 +565,7 @@ sub parse_messages {
     # print Dumper($task);
     my $main = $task->{'todo-item'};
     my @items;
-    my $iclass = 'LinuxiaSupportIntegration::Ticket';
+    my $iclass = 'Helpdesk::Integration::Ticket';
     my %detail = (
                   subject => $main->{content},
                   body => $main->{description},

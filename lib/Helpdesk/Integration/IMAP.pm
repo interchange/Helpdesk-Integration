@@ -1,4 +1,4 @@
-package LinuxiaSupportIntegration::IMAP;
+package Helpdesk::Integration::IMAP;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use Net::IMAP::Client;
 use Email::MIME;
 
 use Moo;
-extends 'LinuxiaSupportIntegration::Instance';
+extends 'Helpdesk::Integration::Instance';
 
 has server => (
                is => 'ro',
@@ -180,7 +180,7 @@ sub parse_messages {
             $details{body} = $email->body_str;
         }
         $details{attachments} = \@attachments;
-        my $simulated = LinuxiaSupportIntegration::Ticket->new(%details);
+        my $simulated = Helpdesk::Integration::Ticket->new(%details);
         print $simulated->attachments_filenames;
         push @mails, [$id => $simulated ];
     }

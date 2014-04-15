@@ -1,0 +1,14 @@
+bin/helpdesk-integration
+examples/mconf-example.yml
+lib/Helpdesk/Integration.pm
+lib/Helpdesk/Integration/GitHub.pm
+lib/Helpdesk/Integration/IMAP.pm
+lib/Helpdesk/Integration/Instance.pm
+lib/Helpdesk/Integration/RT.pm
+lib/Helpdesk/Integration/TeamWork.pm
+lib/Helpdesk/Integration/Ticket.pm
+Makefile.PL
+MANIFEST			This list of files
+t/00-load.t
+t/01-instance.t
+t/02-image-support.t

@@ -13,7 +13,7 @@ my %classes = (
               );
 
 foreach my $c (keys %classes) {
-    my $class = "LinuxiaSupportIntegration::$c";
+    my $class = "Helpdesk::Integration::$c";
     load $class;
     is($class->image_upload_support, $classes{$c});
 }
