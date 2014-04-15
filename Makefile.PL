@@ -4,10 +4,10 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME                => 'LinuxiaSupportIntegration',
+    NAME                => 'Helpdesk::Integration',
     AUTHOR              => q{Marco Pessotto <melmothx@gmail.com>},
-    VERSION_FROM        => 'lib/LinuxiaSupportIntegration.pm',
-    ABSTRACT_FROM       => 'lib/LinuxiaSupportIntegration.pm',
+    VERSION_FROM        => 'lib/Helpdesk::Integration.pm',
+    ABSTRACT_FROM       => 'lib/Helpdesk::Integration.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'perl')
       : ()),
@@ -28,5 +28,5 @@ WriteMakefile(
                   'bin/helpdesk-integration',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'LinuxiaSupportIntegration-*' },
+    clean               => { FILES => 'Helpdesk::Integration-*' },
 );
