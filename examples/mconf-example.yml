@@ -27,3 +27,8 @@ teamwork2:
   api_key: myotherkey
   host: https://instance2.teamworkpm.net
   project: Linuxia testing
+github:
+  type: github
+  user: myghuser
+  password: my_pazzz
+  repo: my-github-repo

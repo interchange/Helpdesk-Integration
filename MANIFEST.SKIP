@@ -1,0 +1,9 @@
+# Top-level filter (only include the following...)
+^(?!(?:script|examples|lib|inc|t|xt|maint|bin)/|(?:(?:Makefile|Build)\.PL|README|MANIFEST|Changes|META\.(?:yml|json))$)
+
+~$
+\.tmp$
+\.old$
+\.bak$
+\.orig$
+\.rej$
