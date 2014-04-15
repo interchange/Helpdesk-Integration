@@ -81,16 +81,16 @@ if ($help || (! -f $conf_file)) {
 my $conf = LoadFile($conf_file);
 die "Bad configuration file $conf_file" unless $conf;
 
-my $linuxia = Helpdesk::Integration->new(debug_mode => $debug,
+my $helpdsk = Helpdesk::Integration->new(debug_mode => $debug,
                                              configuration => $conf);
 
 if ($ignore_images) {
-    $linuxia->ignore_images(1);
+    $helpdsk->ignore_images(1);
 }
 
-$linuxia->set_source($source || "imap");
+$helpdsk->set_source($source || "imap");
 
-if ($linuxia->source->type eq 'imap') {
+if ($helpdsk->source->type eq 'imap') {
     unless ($subject || $from) {
         warn "No search parameter specified! This would take the whole INBOX!\n";
         warn "Dry-run mode forced\n";
@@ -113,7 +113,7 @@ my $error_map = {
                              },
                 };
 
-if (my $import_ticket = $error_map->{ $linuxia->source->type }) {
+if (my $import_ticket = $error_map->{ $helpdsk->source->type }) {
     if ($source_issue_id) {
         if ($import_ticket->{ticket}) {
             die "--$import_ticket->{name} " .
@@ -137,34 +137,34 @@ if ($set_start_date || $set_due_date) {
 
     foreach my $k (keys %todo) {
         if (my $epoch = $todo{$k}) {
-            $linuxia->source->$k( $source_issue_id, $epoch );
+            $helpdsk->source->$k( $source_issue_id, $epoch );
         }
     }
     $dry_run = 1;
 }
 
 
-$linuxia->source->search_params({subject => $subject,
+$helpdsk->source->search_params({subject => $subject,
                                  from => $from,
                                  ticket => $source_issue_id,
                                 });
 
-$linuxia->source->search_target;
+$helpdsk->source->search_target;
 
 # precedence: command line, derived target name from custom field, "rt"
-$linuxia->set_target($target || $linuxia->source->target_name || "rt");
+$helpdsk->set_target($target || $helpdsk->source->target_name || "rt");
 
 if ($project) {
-    if ($linuxia->target->type eq 'teamwork') {
-        $linuxia->target->project($project);
+    if ($helpdsk->target->type eq 'teamwork') {
+        $helpdsk->target->project($project);
     }
     else {
-        die $linuxia->target->conf_name  . " is not a teamwork instance, project would be ignored\n";
+        die $helpdsk->target->conf_name  . " is not a teamwork instance, project would be ignored\n";
     }
 }
 
 if ($todo_list) {
-    if ($linuxia->target->type eq 'teamwork') {
+    if ($helpdsk->target->type eq 'teamwork') {
         if (!$queue) {
             $queue = $todo_list;
         }
@@ -179,37 +179,37 @@ if ($todo_list) {
 
 
 if ($workers) {
-  $linuxia->target->workers($workers);
+  $helpdsk->target->workers($workers);
 }
 
 # could come from the configuration too
-my @workers_array = $linuxia->target->list_workers;
+my @workers_array = $helpdsk->target->list_workers;
 
 if (@workers_array) {
-    $linuxia->target->assign_tickets(@workers_array);
+    $helpdsk->target->assign_tickets(@workers_array);
 }
 
 if ($set_source_owner) {
     if (@workers_array) {
         warn "Assigning source to workers\n";
-        $linuxia->source->assign_tickets(@workers_array);
+        $helpdsk->source->assign_tickets(@workers_array);
     }
     else {
         warn "No workers found to assign";
     }
 }
 elsif ($assign_source_to) {
-    $linuxia->source->assign_tickets(split(/\s*,\s*/, $assign_source_to));
+    $helpdsk->source->assign_tickets(split(/\s*,\s*/, $assign_source_to));
 }
 
 
-# print Dumper($linuxia->imap->folders_more);
-# $linuxia->imap->select("INBOX.RT-backup-Archive");
-# print Dumper($linuxia->imap->search("ALL"));
+# print Dumper($helpdsk->imap->folders_more);
+# $helpdsk->imap->select("INBOX.RT-backup-Archive");
+# print Dumper($helpdsk->imap->search("ALL"));
 
 
 
-my @mails = $linuxia->summary;
+my @mails = $helpdsk->summary;
 
 unless (@mails) {
     die "No message to export found!\n";
@@ -230,17 +230,17 @@ if (!$ticket && $comment) {
 }
 
 # preparation
-$ticket ||= $linuxia->source->target_id;
-$linuxia->target->append($ticket) if $ticket;
+$ticket ||= $helpdsk->source->target_id;
+$helpdsk->target->append($ticket) if $ticket;
 
-$linuxia->target->subject($bts_subject) if $bts_subject;
+$helpdsk->target->subject($bts_subject) if $bts_subject;
 
-$queue ||= $linuxia->source->target_queue;
-$linuxia->target->queue($queue) if $queue;
+$queue ||= $helpdsk->source->target_queue;
+$helpdsk->target->queue($queue) if $queue;
 
-$linuxia->target->is_comment($comment) if $comment;
+$helpdsk->target->is_comment($comment) if $comment;
 
-my $out = $linuxia->execute;
+my $out = $helpdsk->execute;
 
 print "\n";
 
@@ -248,7 +248,7 @@ if ($out) {
     print "$out\n";
 }
 
-elsif (my $err = $linuxia->error) {
+elsif (my $err = $helpdsk->error) {
     if ($err->[0] eq 'no_image_support') {
         print "Couldn't move tickets because the backend doesn't support images\n";
         print $err->[1] . "\n";
@@ -262,7 +262,7 @@ elsif (my $err = $linuxia->error) {
 
 if ($set_source_owner || $assign_source_to) {
     print "Setting source owner for $source_issue_id\n";
-    $linuxia->source->set_owner($source_issue_id);
+    $helpdsk->source->set_owner($source_issue_id);
 }
 
 
@@ -283,14 +283,14 @@ Common keys: type, server, user (not needed for teamwork), password.
 
 imap:
   type: imap
-  server: "mx1.cobolt.net"
+  server: "my.server.net"
   user: 'marco@linuxia.de'
   password: "xxxxxxxxxx"
   backup_folder: "RT-backup-Archive" 
   ssl: 0
 imap2:
   type: imap
-  server: "mx1.cobolt.net"
+  server: "my.server.net"
   user: 'marco@linuxia.de'
   password: "xxxxxxxxx"
   backup_folder: "RT-backup-Archive" 
