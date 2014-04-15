@@ -6,8 +6,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME                => 'Helpdesk::Integration',
     AUTHOR              => q{Marco Pessotto <melmothx@gmail.com>},
-    VERSION_FROM        => 'lib/Helpdesk::Integration.pm',
-    ABSTRACT_FROM       => 'lib/Helpdesk::Integration.pm',
+    VERSION_FROM        => 'lib/Helpdesk/Integration.pm',
+    ABSTRACT_FROM       => 'lib/Helpdesk/Integration.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'perl')
       : ()),
@@ -28,5 +28,5 @@ WriteMakefile(
                   'bin/helpdesk-integration',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Helpdesk::Integration-*' },
+    clean               => { FILES => 'Helpdesk-Integration-*' },
 );
