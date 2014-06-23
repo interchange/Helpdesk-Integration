@@ -22,6 +22,10 @@ The following accessors are read/write and should be self-explanatory
 
 =item to
 
+=item trxid
+
+The backend system may have a reference for this specific message.
+
 =back
 
 =cut
@@ -52,6 +56,9 @@ has attachments => (is => 'rw',
 
 has to => (is => 'rw',
            default => sub { return "" });
+
+has trxid => (is => 'rw',
+            default => sub { return "" });
 
 has _tmpdir => (is => 'rw',
                 default => sub { return File::Temp->newdir() });
@@ -91,6 +98,9 @@ sub summary {
     }
     if (my $due = $self->due) {
         $body .= "\nDue: " . localtime($due);
+    }
+    if (my $trxid = $self->trxid) {
+        $body .= "\nMessage id: $trxid";
     }
     $body .= "\n";
     return $body;

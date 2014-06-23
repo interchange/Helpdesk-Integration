@@ -37,6 +37,7 @@ my ($subject,
     $tw_task,
     $source_issue_id,
     $ignore_images,
+    $transactions,
     $queue);
 
 GetOptions (
@@ -65,7 +66,8 @@ GetOptions (
             "bts-subject=s" => \$bts_subject,
             "start-date=s"  => \$set_start_date,
             "due-date=s"  => \$set_due_date,
-           );
+            "transactions=s" => \$transactions,
+           ) or die "Wrong option";
 
 $threshold ||= 5;
 
@@ -89,6 +91,22 @@ if ($ignore_images) {
 }
 
 $helpdsk->set_source($source || "imap");
+
+if ($transactions) {
+    print "*** Has transactions $transactions\n";
+    unless ($helpdsk->source->type eq 'rt') {
+        print "Setting filter\n";
+        die "--transactions is supported for RT only\n";
+    }
+    my %trxids = map { $_ => 1 } split(/[\s,]+/, $transactions);
+    my $filter = sub {
+        my $msg = shift;
+        my $trxid = $msg->trxid;
+        return unless $trxid;
+        return $trxids{$trxid};
+    };
+    $helpdsk->filter($filter);
+}
 
 if ($helpdsk->source->type eq 'imap') {
     unless ($subject || $from) {
@@ -355,6 +373,10 @@ Options for fetching the messages:
     The ID of the TW task to fetch if the source is a teamwork type.
     The digit refers to the ID you can find in the url. E.g. the id of
     https://test.teamworkpm.net/tasks/1298994 is 1298994
+
+   --transactions '<comma separated ids>'
+
+    A list of transactions id (RT only) to cherry-pick from an RT ticket
 
 Options for setting the Start and Due dates. These two options operate
 on the source instance and after setting the date the script will

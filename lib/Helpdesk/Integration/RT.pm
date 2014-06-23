@@ -222,6 +222,7 @@ sub parse_messages {
                                                          date => $mail->{Created},
                                                          body => $mail->{Content},
                                                          from => $mail->{Creator},
+                                                         trxid => $trx,
                                                          subject => " #$ticket: " . $mail->{Description},
                                                          attachments => \@current_atts,
                                                         );

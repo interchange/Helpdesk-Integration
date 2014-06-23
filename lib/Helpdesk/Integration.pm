@@ -49,6 +49,22 @@ has source => (is => 'rwp');
 has ignore_images => (is => 'rw',
                       default => sub { return 0 });
 
+
+=head2 filter
+
+An optional subroutine which acts as a filter. If returns true, it the
+message will be processed. If returns false, the message will be
+ignored.
+
+=cut
+
+has filter => (is => 'rw',
+               isa => sub {
+                   die "filter wants a sub reference"
+                     unless ($_[0] and (ref($_[0]) eq 'CODE'));
+               });
+
+
 =head2 ignore_images
 
 If true, don't check if the target backend can handle images (will be
@@ -159,6 +175,12 @@ sub execute {
         my $id = $mail->[0];
         my $eml = $mail->[1];
         die "Unexpected failure" unless $eml;
+
+        # if there is a filter, try to see if it returns true
+        if (my $filter = $self->filter) {
+            next unless $filter->($eml);
+        }
+
 
         # the REST interface doesn't seem to support the from header
         # (only cc and attachments), so it should be OK to inject

@@ -75,3 +75,7 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 ./bin/helpdesk-integration --source teamwork --source-ticket 1405969 --dry-run
 
+# pick only a couple of messages from an RT ticket and create a new one, setting its title
+
+./bin/helpdesk-integration --source rt --bts-ticket 150 --transactions=1707,1710 --bts-subject "Cherrypicked"
+
