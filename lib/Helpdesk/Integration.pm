@@ -117,7 +117,6 @@ sub _create_object {
     }
 
     my $obj = $class->new(%credentials);
-    print "Logging in with $class\n";
     $obj->login;
     return $obj;
 }
