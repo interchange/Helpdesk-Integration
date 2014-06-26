@@ -93,7 +93,6 @@ if ($ignore_images) {
 $helpdsk->set_source($source || "imap");
 
 if ($transactions) {
-    print "*** Has transactions $transactions\n";
     unless ($helpdsk->source->type eq 'rt') {
         print "Setting filter\n";
         die "--transactions is supported for RT only\n";
