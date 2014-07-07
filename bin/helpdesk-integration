@@ -40,6 +40,8 @@ my ($subject,
     $transactions,
     $queue);
 
+my %links;
+
 GetOptions (
             "source=s"  => \$source,
             "target=s"  => \$target,
@@ -67,6 +69,7 @@ GetOptions (
             "start-date=s"  => \$set_start_date,
             "due-date=s"  => \$set_due_date,
             "transactions=s" => \$transactions,
+            "link=s" => \%links,
            ) or die "Wrong option";
 
 $threshold ||= 5;
@@ -282,6 +285,20 @@ if ($set_source_owner || $assign_source_to) {
     $helpdsk->source->set_owner($source_issue_id);
 }
 
+if (%links) {
+    if ($helpdsk->target->can('link_to_ticket')) {
+        foreach my $k (keys(%links)) {
+            my @dests = split(/[\s,]+/, $links{$k});
+            foreach my $dst (@dests) {
+                $helpdsk->target->link_to_ticket($dst, $k);
+            }
+        }
+    }
+    else {
+        warn "Linking is not implemented for the target system\n";
+    }
+}
+
 
 exit;
 
@@ -452,6 +469,14 @@ Options for adding to RT/TeamWork
     Boolean. If you specified --workers, you can try this to set the
     owner of the source, assigning it to the same user you assigned in
     the target.
+
+  --link <type>=<id1,id2,id3>
+
+    Repeatable with different types. RT only. On the target ticket
+    will be created links of type <type> to the list of comma
+    separated ticket ids. The type is case insensitive and underscores
+    can be added for better readability. So, depends_on is the same as
+    dependson and DependsOn (the real name).
 
   --force
 

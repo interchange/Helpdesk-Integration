@@ -317,5 +317,42 @@ sub _set_date_field_ticket {
     };
 }
 
+sub link_to_ticket {
+    my ($self, $target, $type) = @_;
+    my $src = $self->append;
+    unless ($src) {
+        warn "It looks like we don't have a ticket id to link, yet, couldn't proceed\n";
+        return;
+    }
+    die "Missing target" unless $target;
+    die "Missing type" unless $type;
+    my @available = (qw/DependsOn
+                        DependedOnBy
+                        RefersTo
+                        ReferredToBy
+                        HasMember
+                        MemberOf/);
+    my %map;
+    foreach my $avail (@available) {
+        my $lc = lc($avail);
+        $map{$lc} = $avail;
+    }
+    my $typelc = lc($type);
+    $typelc =~ s/_//g;
+
+    my $realtype = $map{$typelc};
+    unless ($realtype) {
+        die "$type is not a valid link type";
+    }
+    try {
+        $self->rt->link_tickets(src => $src,
+                                dst => $target,
+                                link_type => $realtype);
+    } catch {
+        warn "Couldn't link src $src and dst $target as $realtype: $_\n"
+    };
+}
+
+
 1;
 
