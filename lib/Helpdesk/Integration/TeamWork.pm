@@ -34,21 +34,17 @@ equivalent, so it should be set in the object.
 
 The following parameters should be passed to the constructor:
 
-=over 4
-
-=item password
+=head2 password
 
 The API key
 
-=item server
+=head2 server
 
 (with or without protocol). If protocol is omitted the http protocol 
 
-=item project
+=head2 project
 
 The name or the id of the project.
-
-=back
 
 =cut
 
@@ -161,21 +157,16 @@ sub _do_api_request {
 
 The following methods are provided
 
-=over 4
-
-=item projects
+=head3 projects
 
 An hashref with id => name pairs. This will be populated when login is
 first called.
 
-=over get_projects
+=head3 get_projects
 
 Return the projects for the current account. It's called on login and
 also checks if the current project set in the object is valid,
 throwing an exception otherwise.
-
-=back
-
 
 =cut
 

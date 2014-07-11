@@ -65,13 +65,11 @@ has _tmpdir => (is => 'rw',
 
 =head1 METHODS
 
-=over 4
-
-=item as_string
+=head2 as_string
 
 The full ticket stringified.
 
-=item summary
+=head2 summary
 
 The ticket with the body cut to a couple of lines.
 
