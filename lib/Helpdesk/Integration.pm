@@ -16,6 +16,28 @@ Helpdesk::Integration -- moving request tickets across systems
 
 0.01
 
+=head1 SUPPORTED SYSTEMS
+
+=over 4
+
+=item GitHub
+
+L<Helpdesk::Integration::GitHub>
+
+=item Request Tracker
+
+L<Helpdesk::Integration::RT>
+
+=item IMAP
+
+L<Helpdesk::Integration::IMAP>
+
+=item TeamWork
+
+L<Helpdesk::Integration::TeamWork>
+
+=back
+
 =cut
 
 use Moo;
