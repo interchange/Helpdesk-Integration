@@ -12,6 +12,10 @@ our $VERSION = '0.01';
 
 Helpdesk::Integration -- moving request tickets across systems
 
+=head1 VERSION
+
+0.01
+
 =cut
 
 use Moo;
@@ -224,5 +228,22 @@ sub execute {
     return join("\n", @messages) . "\n";
 }
 
+=head1 AUTHORS
+
+Marco Pessotto, C<melmothx@gmail.com>
+
+Stefan Hornburg (Racke), C<racke@linuxia.de>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2013-2014 Stefan Hornburg (Racke), Marco Pessotto.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+=cut
 
 1;
