@@ -145,7 +145,6 @@ sub parse_messages {
     my @mails;
     foreach my $id (@ids) {
         print "Parsing $id\n";
-        my @attachments;
         my $body = $self->imap->get_rfc822_body($id);
         unless ($body && $$body) {
             warn "Couldn't retrieve the body mail for $id!";
@@ -158,27 +157,8 @@ sub parse_messages {
                        to   => $email->header("To"),
                        subject => $email->header("Subject"),
                       );
-        if (my @parts = $email->subparts) {
-            foreach my $p (@parts) {
-                if ($p->content_type =~ m/text\/plain/) {
-                    $details{body} .= $p->body_str;
-                }
-                elsif ($p->content_type =~ m/text\/html/) {
-                    # unclear what to do with it.
-                }
-                else {
-                    my $filename = $p->filename;
-                    my $body = $p->body;
-                    unless (($filename =~ m/^\./)
-                        or ($filename =~ m!/!)) {
-                        push @attachments, [ $filename, $body ];
-                    }
-                }
-            }
-        }
-        else {
-            $details{body} = $email->body_str;
-        }
+        my ($text, @attachments) = $self->parse_email($email);
+        $details{body} = $text;
         $details{attachments} = \@attachments;
         my $simulated = Helpdesk::Integration::Ticket->new(%details);
         print $simulated->attachments_filenames;
@@ -187,6 +167,42 @@ sub parse_messages {
     $self->_set_current_mail_objects(\@mails);
     return @mails;
 }
+
+sub parse_email {
+    my ($self, $email) = @_;
+    my @attachments;
+    my $text = '';
+    if (my @parts = $email->subparts) {
+        # print "entering loop\n";
+        foreach my $part (@parts) {
+            my ($subtext, @subattach) = $self->parse_email($part);
+            $text .= $subtext;
+            push @attachments, @subattach;
+        }
+    }
+    # here we got a real body
+    else {
+        my $content_type = $email->content_type;
+        my $filename = $email->filename;
+        if ($content_type =~ m/text\/plain/) {
+            $text .= $email->body_str;
+        }
+        elsif ($filename) {
+            my $bytes = $email->body;
+            if ($filename =~ m/^\./ or $filename =~ m!/!) {
+                warn "Illegal filename $filename, ignoring\n";
+            }
+            else {
+                push @attachments, [ $filename, $bytes ];
+            }
+        }
+        else {
+            warn "Ignoring $content_type part\n";
+        }
+    }
+    return $text, @attachments;
+}
+
 
 
 =head2 archive_messages(@ids)
