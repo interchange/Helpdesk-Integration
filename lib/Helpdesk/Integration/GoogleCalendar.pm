@@ -85,6 +85,11 @@ Always return C<gcal>
 
 =item calendar_id
 
+=item time_zone
+
+Being a calendar, the timezone is crucial. You can set the timezone
+for the newly created tickets. Defaults to UTC.
+
 =back
 
 =cut
@@ -105,6 +110,9 @@ has token_file => (is => 'ro',
 
 has calendar_id => (is => 'ro',
                     required => 1);
+
+has time_zone => (is => 'rw',
+                  default => sub { 'UTC' });
 
 
 =head2 Methods
@@ -132,8 +140,10 @@ sub create {
     my $start = $eml->start;
     my $end = $eml->due;
     die "Missing start/end" unless ($start && $end);
-    my $start_dt = DateTime->from_epoch(epoch => $start);
-    my $end_dt = DateTime->from_epoch(epoch => $end);
+    my $start_dt = DateTime->from_epoch(epoch => $start,
+                                        time_zone => $self->time_zone);
+    my $end_dt = DateTime->from_epoch(epoch => $end,
+                                      time_zone => $self->time_zone);
     my $event = {
                  start => {
                            dateTime => $start_dt->iso8601,
