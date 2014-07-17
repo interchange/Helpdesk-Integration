@@ -9,6 +9,7 @@ use Google::API::Client;
 use Google::API::OAuth2::Client;
 use Data::Dumper;
 use Date::Parse;
+use DateTime;
 
 =head1 NAME
 
@@ -128,22 +129,53 @@ All of them do the same thing: adding an entry to the target calendar.
 
 sub create {
     my ($self, $eml) = @_;
-    # ....
+    my $start = $eml->start;
+    my $end = $eml->due;
+    die "Missing start/end" unless ($start && $end);
+    my $start_dt = DateTime->from_epoch(epoch => $start);
+    my $end_dt = DateTime->from_epoch(epoch => $end);
+    my $event = {
+                 start => {
+                           dateTime => $start_dt->iso8601,
+                           timeZone => $start_dt->time_zone->name,
+                          },
+                 end => {
+                           dateTime => $end_dt->iso8601,
+                           timeZone => $end_dt->time_zone->name,
+                        },
+                 summary => $eml->subject,
+                 transparency => 'transparent',
+                 # location ?
+                 confirmed => 'confirmed',
+                 description => $eml->body,
+                };
+    my $ev = $self->insert_event($event);
+    if ($ev->{id}) {
+        return $ev->{id}, "Event created: $ev->{htmlLink}";
+    }
+    else {
+        return;
+    }
+}
+
+sub _event_append {
+    my $self = shift;
+    return;
 }
 
 sub comment {
     my ($self, @args) = @_;
-    $self->create(@args);
+    $self->_event_append(@args);
 }
 
 sub correspond {
     my ($self, @args) = @_;
-    $self->create(@args);
+    $self->_event_append(@args);
 }
 
 sub create_comment {
     my ($self, @args) = @_;
-    $self->create(@args);
+    $self->_event_append(@args);
 }
 
 =head2 login
@@ -379,8 +411,7 @@ if not, create it.
 sub update_or_create_event {
     my ($self, $event) = @_;
     my $ev;
-    {
-        my $id = $event->{id};
+    if (my $id = $event->{id}) {
         local $SIG{__WARN__} = sub {};
         eval {
             $ev = $self->get_event($self->calendar_id, $id);
@@ -391,7 +422,7 @@ sub update_or_create_event {
         $self->update_event($self->calendar_id, $event);
     }
     else {
-        print "Inserting $event->{id}\n";
+        print "Inserting new event\n";
         $self->insert_event($self->calendar_id, $event);
 
     }

@@ -83,3 +83,8 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 ./bin/helpdesk-integration --source gcal --dry-run
 
+# Create an event from an RT ticket. This assume there is the Starts/Due set.
+
+./bin/helpdesk-integration --source rt --bts-ticket 215 --target gcal
+
+
