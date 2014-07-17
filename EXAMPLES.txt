@@ -87,4 +87,8 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 ./bin/helpdesk-integration --source rt --bts-ticket 215 --target gcal
 
+# Create an RT ticket from a calendar (packs all the events in a
+#  ticket, which probably is now what we want).
+
+./bin/helpdesk-integration --source gcal --target rt
 
