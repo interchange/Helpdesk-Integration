@@ -159,7 +159,13 @@ sub create {
 }
 
 sub _event_append {
-    my $self = shift;
+    my ($self, $eml) = @_;
+    my $id = $self->append;
+    die "No id found" unless $id;
+    my $event = $self->get_event($id);
+    # update the description
+    $event->{description} .= "\n\n" . $eml->body;
+    $self->update_event($event);
     return;
 }
 
@@ -419,11 +425,11 @@ sub update_or_create_event {
     }
     if ($ev) {
         print "Updating $event->{id}\n";
-        $self->update_event($self->calendar_id, $event);
+        $self->update_event($event);
     }
     else {
         print "Inserting new event\n";
-        $self->insert_event($self->calendar_id, $event);
+        $self->insert_event($event);
 
     }
 }
