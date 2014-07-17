@@ -125,6 +125,7 @@ sub _create_object {
                imap => 'IMAP',
                teamwork => 'TeamWork',
                github => 'GitHub',
+               gcal => 'GoogleCalendar',
               );
     my $class = $map{$type};
     die "Unsupported type $type!" unless $class;

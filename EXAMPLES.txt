@@ -79,3 +79,7 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 ./bin/helpdesk-integration --source rt --bts-ticket 150 --transactions=1707,1710 --bts-subject "Cherrypicked"
 
+# Inspect google calendar
+
+./bin/helpdesk-integration --source gcal --dry-run
+

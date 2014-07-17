@@ -32,3 +32,9 @@ github:
   user: myghuser
   password: my_pazzz
   repo: my-github-repo
+gcal:
+  type: gcal
+  token_file: data/gcal-token.json
+  secrets_file: data/gcal-secret.json
+  calendar_id: xxxxxxx@group.calendar.google.com
+
