@@ -8,6 +8,7 @@ extends 'Helpdesk::Integration::Instance';
 use Google::API::Client;
 use Google::API::OAuth2::Client;
 use Data::Dumper;
+use Date::Parse;
 
 =head1 NAME
 
@@ -162,8 +163,21 @@ List the entries in the calendar and create the Ticket objects.
 sub parse_messages {
     my $self = shift;
     my @events = $self->events;
-    print Dumper(\@events);
-    die;
+    my @tickets;
+    foreach my $event (@events) {
+        my %details = (
+                       date => $event->{updated},
+                       from => $event->{creator}->{email},
+                       to => $event->{organizer}->{email},
+                       subject => $event->{summary} || 'No subject',
+                       body => $event->{description},
+                       start => str2time($event->{start}->{dateTime}),
+                       due => str2time($event->{end}->{dateTime}),
+                       trxid => $event->{id},
+                      );
+        push @tickets, Helpdesk::Integration::Ticket->new(%details);
+    }
+    return map { [ undef, $_ ] } @tickets;
 }
 
 =head1 INTERNALS
