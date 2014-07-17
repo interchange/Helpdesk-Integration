@@ -23,6 +23,7 @@ WriteMakefile(
                   'Moo' => 0,
                   'YAML' => 0,
                   'Date::Parse' => 0,
+                  'Google::API::Client' => 0.13,
     },
     EXE_FILES => [
                   'bin/helpdesk-integration',
