@@ -32,6 +32,10 @@ L<Helpdesk::Integration::RT>
 
 L<Helpdesk::Integration::IMAP>
 
+=item Google Calendar
+
+L<Helpdesk::Integration::GoogleCalendar>
+
 =item TeamWork
 
 L<Helpdesk::Integration::TeamWork>
