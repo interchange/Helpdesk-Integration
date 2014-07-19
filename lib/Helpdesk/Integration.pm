@@ -42,6 +42,8 @@ L<Helpdesk::Integration::TeamWork>
 
 =back
 
+These are all subclasses of L<Helpdesk::Integration::Instance>.
+
 =cut
 
 use Moo;
