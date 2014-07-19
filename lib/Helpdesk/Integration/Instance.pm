@@ -139,7 +139,7 @@ Archive the messages parsed
 
 =item project
 
-Set the project (if supported by the backed)
+Set the project (if supported by the backend)
 
 =item type
 
