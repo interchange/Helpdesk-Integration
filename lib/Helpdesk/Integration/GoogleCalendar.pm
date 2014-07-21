@@ -3,7 +3,7 @@ package Helpdesk::Integration::GoogleCalendar;
 use strict;
 use warnings;
 use Moo;
-extends 'Helpdesk::Integration::Instance';
+with 'Helpdesk::Integration::Instance';
 
 use Google::API::Client;
 use Google::API::OAuth2::Client;

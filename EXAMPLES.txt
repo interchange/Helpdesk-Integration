@@ -85,10 +85,15 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 # Create an event from an RT ticket. This assume there is the Starts/Due set.
 
-./bin/helpdesk-integration --source rt --bts-ticket 215 --target gcal
+./bin/helpdesk-integration --source rt --bts-ticket 215 --target gcal \
+                            --ignore-images
 
 # Create an RT ticket from a calendar (packs all the events in a
 #  ticket, which probably is now what we want).
 
 ./bin/helpdesk-integration --source gcal --target rt
+
+# Crazy example, but works nevertheless: from gcal to github
+
+./bin/helpdesk-integration --source gcal --target github
 

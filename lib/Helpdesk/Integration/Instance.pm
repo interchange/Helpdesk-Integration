@@ -2,13 +2,35 @@ package Helpdesk::Integration::Instance;
 
 use strict;
 use warnings;
+use Moo::Role;
 use Helpdesk::Integration::Ticket;
-use Moo;
+
+requires qw/type parse_messages login
+            comment correspond create/;
 
 =head1 NAME
 
-Helpdesk::Integration::Instance - Base class for Helpdesk classes
+Helpdesk::Integration::Instance - Moo role for Helpdesk classes
 
+=head2 REQUIRES
+
+The role requires the consumer to implement the following methods:
+
+=over 4
+
+=item type
+
+=item login
+
+=item parse_messages
+
+=item create
+
+=item comment
+
+=item correspond
+
+=back
 
 =head1 ACCESSORS/METHODS
 
@@ -141,13 +163,9 @@ Archive the messages parsed
 
 Set the project (if supported by the backend)
 
-=item type
-
-The type of the object (each subclass should return its own) 
-
 =item image_upload_support
 
-Return true if the class support image upload
+Return true if the class support image upload. False by default.
 
 =back
 
@@ -190,18 +208,7 @@ sub archive_messages {
     return;
 }
 
-sub project {
-    return;
-}
-
-sub type {
-    return "dummy";
-}
-
-sub login {
-    return;
-}
-
+has project => (is => 'rw');
 has append  => (is => 'rw');
 has queue   => (is => 'rw');
 has workers => (is => 'rw');

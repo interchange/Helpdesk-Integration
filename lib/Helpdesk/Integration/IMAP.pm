@@ -6,7 +6,7 @@ use Net::IMAP::Client;
 use Email::MIME;
 
 use Moo;
-extends 'Helpdesk::Integration::Instance';
+with 'Helpdesk::Integration::Instance';
 
 has server => (
                is => 'ro',
@@ -255,5 +255,35 @@ sub imap_backup_folder_full_path {
 sub type {
     return "imap";
 }
+
+=head2 NOT IMPLEMENTED
+
+The following methods are not implemented yet (because usually you
+need IMAP as source, not as target, so they just return.
+
+=over 4
+
+=item create
+
+=item correspond
+
+=item comment
+
+=back
+
+=cut
+
+sub create {
+    return;
+}
+
+sub correspond {
+    return;
+}
+
+sub comment {
+    return;
+}
+
 
 1;

@@ -7,7 +7,7 @@ use Date::Parse;
 use DateTime;
 
 use Moo;
-extends 'Helpdesk::Integration::Instance';
+with 'Helpdesk::Integration::Instance';
 
 has rt_obj => (is => 'rwp');
 

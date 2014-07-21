@@ -2,9 +2,12 @@
 use 5.010001;
 use strict;
 use warnings;
-use Test::More tests => 1;
-use Helpdesk::Integration::Instance;
+use Test::More tests => 5;
 
-my $instance = Helpdesk::Integration::Instance->new;
+# if the role doesn't apply, it wouldn't load too
 
-ok ($instance);
+foreach my $c (qw/GitHub TeamWork GoogleCalendar IMAP RT/) {
+    use_ok("Helpdesk::Integration::$c");
+}
+
+

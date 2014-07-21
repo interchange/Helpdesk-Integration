@@ -50,15 +50,13 @@ The name or the id of the project.
 
 use Moo;
 
-extends 'Helpdesk::Integration::Instance';
+with 'Helpdesk::Integration::Instance';
 
 has password => (is => 'ro',
                 required => 1);
 
 has server => (is => 'ro',
              required => 1);
-
-has project => (is => 'rw');
 
 has auth_realm => (is => 'ro',
                    default => sub { return 'TeamworkPM' });

@@ -6,7 +6,7 @@ use Net::GitHub;
 use Data::Dumper;
 
 use Moo;
-extends 'Helpdesk::Integration::Instance';
+with 'Helpdesk::Integration::Instance';
 
 =head2 ACCESSORS
 
@@ -49,6 +49,16 @@ has access_token => (is => 'ro');
 has api_url => (is => 'ro');
 
 has gh_obj => (is => 'rwp');
+
+=head2 login
+
+Empty method, not needed.
+
+=cut
+
+sub login {
+    return;
+}
 
 sub gh {
     my $self = shift;
