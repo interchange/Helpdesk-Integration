@@ -409,12 +409,14 @@ sub store_token {
     my $file = $self->token_file;
     my $auth_driver = $self->auth_driver;
     my $access_token = $auth_driver->token_obj;
+    my $old_umask = umask 0077;
     open my $fh, '>', $file;
     if ($fh) {
         require JSON;
         print $fh JSON->new->encode($access_token);
         close $fh;
     }
+    umask $old_umask;
 }
 
 =head2 update_or_create_event( $event)
