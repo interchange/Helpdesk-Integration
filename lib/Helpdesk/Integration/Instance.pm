@@ -228,6 +228,17 @@ sub image_upload_support {
     return 0;
 }
 
+=head2 can_upload_files_on_creation
+
+If a backend manage to upload files on creation, the C<create> method
+should take care of them and the instance should overload this method
+returning true.
+
+=cut
+
+sub can_upload_files_on_creation {
+    return 0;
+}
 
 1;
 

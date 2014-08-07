@@ -225,9 +225,22 @@ sub execute {
                 push @messages, $msg;
                 die "No ticket returned!" unless $ticket;
                 $self->target->append($ticket);
-                if (my @attachments = $eml->attachments_filenames) {
-                    $self->target->correspond($eml);
+
+                # if the backend is not able to upload files on
+                # creation, we have to repeat, with a tweaked body.
+                unless($self->target->can_upload_files_on_creation) {
+                    my $emlbody = $eml->body;
+                    my $emlsubject = $eml->subject;
+                    $eml->body('');
+                    $eml->subject('Attachments');
+                    if (my @attachments = $eml->attachments_filenames) {
+                        $self->target->correspond($eml);
+                    }
+                    # restore the original body
+                    $eml->body($emlbody);
+                    $eml->subject($emlsubject);
                 }
+
             }
             elsif ($self->target->is_comment) {
                 push @messages,
