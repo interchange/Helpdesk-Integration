@@ -15,8 +15,6 @@ binmode STDOUT, ":encoding(utf-8)";
 
 my ($subject,
     $from,
-    $bts_ticket,
-    $ticket,
     $comment,
     $help,
     $dry_run,
@@ -25,33 +23,50 @@ my ($subject,
     $project,
     $force,
     $debug,
-    $source,
-    $target,
     $todo_list,
     $set_source_owner,
     $set_start_date,
     $set_due_date,
     $assign_source_to,
     $bts_subject,
-    $gh_issue,
-    $tw_task,
-    $source_issue_id,
     $ignore_images,
     $transactions,
     $queue);
 
+# defaults
+my $source_string = '';
+my $target_string = '';
+
+
 my %links;
 
+my $removed_options_warning = <<'REMOVED';
+
+Please note that the following options have been removed because
+reduntant and sometimes confusing:
+
+ * Source ticket number:  --bts-ticket, --gh-issue, --tw-task, --source-ticket
+   They used to do the same thing. Instead, please use
+
+    --source <mysource>=<ticket>
+
+   E.g.: --source rt=150
+
+ * Target ticket number: --ticket
+
+   Use the more concise option (symmetric with the --source option)
+
+     --target <mytarget>=<ticket>
+
+   E.g.: --target rt=191
+
+REMOVED
+
 GetOptions (
-            "source=s"  => \$source,
-            "target=s"  => \$target,
+            "source=s"  => \$source_string,
+            "target=s"  => \$target_string,
             "subject=s" => \$subject,
-            "bts-ticket=i" => \$bts_ticket,
-            "gh-issue=i"   => \$gh_issue,
-            "tw-task=i" => \$tw_task,
-            "source-ticket=i" => \$source_issue_id,
             "from=s"    => \$from,
-            "ticket=i"  => \$ticket, # numeric
             "todo-list=s" => \$todo_list,
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
@@ -70,7 +85,7 @@ GetOptions (
             "due-date=s"  => \$set_due_date,
             "transactions=s" => \$transactions,
             "link=s" => \%links,
-           ) or die "Wrong option";
+           ) or die $removed_options_warning;
 
 $threshold ||= 5;
 
@@ -81,6 +96,9 @@ if ($help || (! -f $conf_file)) {
     print "Tried to use $conf_file\n";
     exit 2;
 }
+
+my ($source, $source_ticket) = split(/=/, $source_string, 2);
+my ($target, $target_ticket) = split(/=/, $target_string, 2);
 
 
 my $conf = LoadFile($conf_file);
@@ -118,37 +136,8 @@ if ($helpdsk->source->type eq 'imap') {
     }
 }
 
-my $error_map = {
-                 rt => {
-                        ticket => $bts_ticket,
-                        name => "bts-ticket",
-                       },
-                 github => {
-                            ticket => $gh_issue,
-                            name => "gh-issue",
-                           },
-                 teamwork => {
-                              ticket => $tw_task,
-                              name => "tw-task",
-                             },
-                };
-
-if (my $import_ticket = $error_map->{ $helpdsk->source->type }) {
-    if ($source_issue_id) {
-        if ($import_ticket->{ticket}) {
-            die "--$import_ticket->{name} " .
-              "is conflicting with --source-ticket (its alias)";
-        }
-    }
-    else {
-        unless ($source_issue_id = $import_ticket->{ticket}) {
-            die "No --$import_ticket->{name} nor --source-ticket was specified\n";
-        }
-    }
-}
-
 if ($set_start_date || $set_due_date) {
-    die "Missing id to set the date!" unless $source_issue_id;
+    die "Missing id to set the date!" unless $source_ticket;
 
     my %todo = (
                 set_start_date => str2time($set_start_date),
@@ -157,7 +146,7 @@ if ($set_start_date || $set_due_date) {
 
     foreach my $k (keys %todo) {
         if (my $epoch = $todo{$k}) {
-            $helpdsk->source->$k( $source_issue_id, $epoch );
+            $helpdsk->source->$k( $source_ticket, $epoch );
         }
     }
     $dry_run = 1;
@@ -166,7 +155,7 @@ if ($set_start_date || $set_due_date) {
 
 $helpdsk->source->search_params({subject => $subject,
                                  from => $from,
-                                 ticket => $source_issue_id,
+                                 ticket => $source_ticket,
                                 });
 
 $helpdsk->source->search_target;
@@ -244,14 +233,14 @@ if (!$force and @mails > $threshold) {
     exit;
 }
 
-if (!$ticket && $comment) {
+if (!$target_ticket && $comment) {
     warn "You're creating a ticket, the --comment option is ignored, bailing out";
     exit;
 }
 
 # preparation
-$ticket ||= $helpdsk->source->target_id;
-$helpdsk->target->append($ticket) if $ticket;
+$target_ticket ||= $helpdsk->source->target_id;
+$helpdsk->target->append($target_ticket) if $target_ticket;
 
 $helpdsk->target->subject($bts_subject) if $bts_subject;
 
@@ -281,8 +270,8 @@ elsif (my $err = $helpdsk->error) {
 }
 
 if ($set_source_owner || $assign_source_to) {
-    print "Setting source owner for $source_issue_id\n";
-    $helpdsk->source->set_owner($source_issue_id);
+    print "Setting source owner for $source_ticket\n";
+    $helpdsk->source->set_owner($source_ticket);
 }
 
 if (%links) {
@@ -357,6 +346,16 @@ Options to define the source and target:
     (<string> must exist in the configuration file). Defaults to "rt"
   
 
+The target and the source may have the form "<target>=<ticket>", e.g.
+--target rt=150 or --source teamwork=12341234, to specify that you
+want to source a specific ticket or to append to an existing one. This
+form replaces the removed options --ticket, --bts-ticket, --gh-issue,
+--tw-task, --source-ticket.
+
+If no target ticket is provided, a new ticket will be created using
+the first mail, and the other will be added as correspondence (for RT)
+or as comment (for Teamwork).
+
 Options for fetching the messages:
 
   --subject '<string>'
@@ -368,27 +367,6 @@ Options for fetching the messages:
 
     The mails with the from header containing the given string will be
     added to RT. It's relevant only if the source is an imap type.
-
-  --source-ticket
-
-    The id of the ticket to fetch from the source backend.
-
-  --bts-ticket '<digit>'
-
-    The ID of the ticket to fetch if the source is a rt type.
-    Alias for --source-ticket <digit>.
-
-  --gh-issue '<digit>'
-
-    The ID of the ticket to fetch if the source is a github type.
-    Usually in the github world it's referred as #<digit>.
-    Alias for --source-ticket <digit>.
-
-   --tw-task '<digit>'
-
-    The ID of the TW task to fetch if the source is a teamwork type.
-    The digit refers to the ID you can find in the url. E.g. the id of
-    https://test.teamworkpm.net/tasks/1298994 is 1298994
 
    --transactions '<comma separated ids>'
 
@@ -420,12 +398,6 @@ Options for adding to RT/TeamWork
     When this flag is set, no operation is performed on the target
     mails, but they are just listed (with the from, to, subject, date
     header and the first 50 characters of the body.
-
-  --ticket '<id>'
-
-    Add the mail to the given ticket. If none is provided, a new
-    ticket will be created using the first mail, and the other will be
-    added as correspondence (for RT) or as comment (for Teamwork).
 
   --todo-list '<id>'
 

@@ -14,13 +14,13 @@ set -e
 ./bin/helpdesk-integration --debug --from marco --target teamwork --queue "New thing"
 
 # copy the mails from marco in the RT ticket 2
-./bin/helpdesk-integration --debug --from marco --ticket 2
+./bin/helpdesk-integration --debug --from marco --target rt=2
 
 # copy the  mails from marco in the TW task 1159403 as comments
-./bin/helpdesk-integration --debug --from marco --target teamwork --ticket 1159403
+./bin/helpdesk-integration --debug --from marco --target teamwork=1159403
 
 # copy the mails from marco in the ticket 2 as comment
-./bin/helpdesk-integration --debug --from marco --ticket 2 --comment
+./bin/helpdesk-integration --debug --from marco --target rt=2 --comment
 
 # copy the mails in a new RT ticket setting the subject
 ./bin/helpdesk-integration --debug --from marco --bts-subject "Testing the subj"
@@ -32,16 +32,17 @@ set -e
 ./bin/helpdesk-integration --debug --from marco --bts-subject "Testing the subj" --queue Test --target teamwork --workers "melmothx@gmail.com,bubez"
 
 
-# copy the RT ticket 1 in the TW task "This is a test" (and create it
+# copy the RT ticket 150 in the TW task "This is a test" (and create it
 # if needed).
-./bin/helpdesk-integration --source rt --target teamwork --bts-ticket 150 --queue "Pallino"
+./bin/helpdesk-integration --source rt=150 --target teamwork --queue "Pallino"
 
-# sameb thing, but assign to a username
+# same thing, but assign to a username
 
-./bin/helpdesk-integration --source rt --target teamwork --bts-ticket 151 --queue "This is a test" --workers "melmothx@gmail.com,bubez"
+./bin/helpdesk-integration --source rt=151 --target teamwork \
+    --queue "This is a test" --workers "melmothx@gmail.com,bubez"
 
 # copy the RT ticket 1 in the TW task 1159613 as comments
-./bin/helpdesk-integration --source rt  --target teamwork --bts-ticket 151 --queue "This is a test" --workers "melmothx@gmail.com,bubez" --ticket 1159613
+./bin/helpdesk-integration --source rt=151  --target teamwork=1159613 --workers "melmothx@gmail.com,bubez"
 
 
 # custom fields
@@ -69,15 +70,15 @@ set -e
 # the following command will discovery the target, and create a new
 #  todo-list in the Task list "Hello"
 
-bin/helpdesk-integration --source rt --bts-ticket 155 
+bin/helpdesk-integration --source rt=155 
 
 # Inspect a TW ticket
 
-./bin/helpdesk-integration --source teamwork --source-ticket 1405969 --dry-run
+./bin/helpdesk-integration --source teamwork=1405969 --dry-run
 
 # pick only a couple of messages from an RT ticket and create a new one, setting its title
 
-./bin/helpdesk-integration --source rt --bts-ticket 150 --transactions=1707,1710 --bts-subject "Cherrypicked"
+./bin/helpdesk-integration --source rt=150 --transactions=1707,1710 --bts-subject "Cherrypicked"
 
 # Inspect google calendar
 
@@ -85,7 +86,7 @@ bin/helpdesk-integration --source rt --bts-ticket 155
 
 # Create an event from an RT ticket. This assume there is the Starts/Due set.
 
-./bin/helpdesk-integration --source rt --bts-ticket 215 --target gcal \
+./bin/helpdesk-integration --source rt=215 --target gcal \
                             --ignore-images
 
 # Create an RT ticket from a calendar (packs all the events in a
