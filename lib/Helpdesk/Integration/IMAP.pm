@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use Net::IMAP::Client;
 use Email::MIME;
-
+use Data::Dumper;
+use Mail::GnuPG;
 use Moo;
 with 'Helpdesk::Integration::Instance';
 
@@ -45,7 +46,7 @@ sub imap {
     my $self = shift;
     my $imap = $self->imap_obj;
     unless ($imap) {
-        print "Imap object is empty, creating\n";
+        # print "Imap object is empty, creating\n";
         my %credentials = (
                            server => $self->server,
                            user   => $self->user,
@@ -144,13 +145,24 @@ sub parse_messages {
     }
     my @mails;
     foreach my $id (@ids) {
-        print "Parsing $id\n";
+        # print "Parsing $id\n";
         my $body = $self->imap->get_rfc822_body($id);
         unless ($body && $$body) {
             warn "Couldn't retrieve the body mail for $id!";
             next;
         };
         my $email = Email::MIME->new($$body);
+
+        my $body_copy = $$body;
+        my $parser = MIME::Parser->new;
+        my $entity = $parser->parse_data($body_copy);
+        if (Mail::GnuPG->is_encrypted($entity)) {
+            my $gnupg = Mail::GnuPG->new();
+            $gnupg->decrypt($entity);
+            print Dumper($gnupg);
+            $email = Email::MIME->new($entity->stringify);
+        }
+
         my %details = (
                        date => $email->header("Date"),
                        from => $email->header("From"),
