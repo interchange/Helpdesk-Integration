@@ -4,8 +4,6 @@ use strict;
 use warnings;
 use Net::IMAP::Client;
 use Email::MIME;
-use Data::Dumper;
-use Mail::GnuPG;
 use Moo;
 with 'Helpdesk::Integration::Instance';
 
@@ -23,6 +21,9 @@ has password => (
              is => 'ro',
              required => 1,
             );
+
+has key => ( is => 'ro');
+has passphrase => (is => 'ro');
 
 has ssl => (is => 'ro',
             default => sub { return 1 });
@@ -153,25 +154,34 @@ sub parse_messages {
         };
         my $email = Email::MIME->new($$body);
 
-        my $body_copy = $$body;
-        my $parser = MIME::Parser->new;
-        my $entity = $parser->parse_data($body_copy);
-        if (Mail::GnuPG->is_encrypted($entity)) {
-            my $gnupg = Mail::GnuPG->new();
-            $gnupg->decrypt($entity);
-            print Dumper($gnupg);
-            $email = Email::MIME->new($entity->stringify);
-        }
-
         my %details = (
                        date => $email->header("Date"),
                        from => $email->header("From"),
                        to   => $email->header("To"),
                        subject => $email->header("Subject"),
                       );
-        my ($text, @attachments) = $self->parse_email($email);
-        $details{body} = $text;
-        $details{attachments} = \@attachments;
+        # if we have a key, we can try to decrypt if needed
+        if (my $key = $self->key) {
+            my $body_copy = $$body;
+            my $parser = MIME::Parser->new;
+            my $entity = $parser->parse_data($body_copy);
+            require Mail::GnuPG;
+            if (Mail::GnuPG->is_encrypted($entity)) {
+                my $gnupg = Mail::GnuPG->new(key => $key,
+                                             ($self->passphrase ?
+                                              (passphase => $self->passphrase) :
+                                              (use_agent => 1)));
+                my ($result) = $gnupg->decrypt($entity);
+                if ($result == 0) {
+                    $details{body} = $gnupg->{decrypted}->bodyhandle->as_string;
+                }
+            }
+        }
+        unless ($details{body}) {
+            my ($text, @attachments) = $self->parse_email($email);
+            $details{body} = $text;
+            $details{attachments} = \@attachments;
+        }
         my $simulated = Helpdesk::Integration::Ticket->new(%details);
         print $simulated->attachments_filenames;
         push @mails, [$id => $simulated ];
