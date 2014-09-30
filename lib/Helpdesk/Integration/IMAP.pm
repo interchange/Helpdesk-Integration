@@ -163,9 +163,11 @@ sub parse_messages {
         # if we have a key, we can try to decrypt if needed
         if (my $key = $self->key) {
             my $body_copy = $$body;
+            require Mail::GnuPG;
+            require MIME::Parser;
             my $parser = MIME::Parser->new;
             my $entity = $parser->parse_data($body_copy);
-            require Mail::GnuPG;
+
             if (Mail::GnuPG->is_encrypted($entity)) {
                 my $gnupg = Mail::GnuPG->new(key => $key,
                                              ($self->passphrase ?
