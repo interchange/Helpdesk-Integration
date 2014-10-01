@@ -3,8 +3,14 @@ package Helpdesk::Integration::IMAP;
 use strict;
 use warnings;
 use Net::IMAP::Client;
+
+# we kind of use similar modules
 use Email::MIME;
+use MIME::Parser;
+
+use Mail::GnuPG;
 use Moo;
+
 with 'Helpdesk::Integration::Instance';
 
 has server => (
@@ -160,15 +166,14 @@ sub parse_messages {
                        to   => $email->header("To"),
                        subject => $email->header("Subject"),
                       );
-        # if we have a key, we can try to decrypt if needed
-        if (my $key = $self->key) {
-            my $body_copy = $$body;
-            require Mail::GnuPG;
-            require MIME::Parser;
-            my $parser = MIME::Parser->new;
-            my $entity = $parser->parse_data($body_copy);
 
-            if (Mail::GnuPG->is_encrypted($entity)) {
+        # check if it's encrypted
+        my $body_copy = $$body;
+        my $parser = MIME::Parser->new;
+        my $entity = $parser->parse_data($body_copy);
+        if (Mail::GnuPG->is_encrypted($entity)) {
+            if (my $key = $self->key) {
+
                 my $gnupg = Mail::GnuPG->new(key => $key,
                                              ($self->passphrase ?
                                               (passphase => $self->passphrase) :
@@ -177,8 +182,16 @@ sub parse_messages {
                 if ($result == 0) {
                     $details{body} = $gnupg->{decrypted}->bodyhandle->as_string;
                 }
+                else {
+                    die join('', @{$gnupg->{last_message}});
+                }
+            }
+            else {
+                die "This is an encrypted message, but no key has been provided\n"
+                  . "in the IMAP configuration stanza. Unable to decrypt!\n";
             }
         }
+
         unless ($details{body}) {
             my ($text, @attachments) = $self->parse_email($email);
             $details{body} = $text;
