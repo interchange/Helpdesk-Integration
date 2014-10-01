@@ -24,6 +24,7 @@ WriteMakefile(
                   'YAML' => 0,
                   'Date::Parse' => 0,
                   'Mail::GnuPG' => 0,
+                  'MIME::Parser' => 0,
                   'Google::API::Client' => 0.13,
     },
     EXE_FILES => [
