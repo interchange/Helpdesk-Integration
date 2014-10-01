@@ -180,11 +180,16 @@ sub parse_messages {
                                               (use_agent => 1)));
                 my ($result) = $gnupg->decrypt($entity);
                 if ($result == 0) {
-                    my $body = Email::MIME->new($gnupg->{plaintext});
-                    my ($text, @attachments) = $self->parse_email($body);
-                    $details{body} = $text;
-                    $details{attachments} = \@attachments;
-                }
+		    if (my $lines = $gnupg->{plaintext}) {
+			my $body = Email::MIME->new(join('', @$lines));
+			my ($text, @attachments) = $self->parse_email($body);
+			$details{body} = $text;
+			$details{attachments} = \@attachments;
+		    }
+		    else {
+			die "Something went wrong\n";
+		    }
+		}
                 else {
                     die join('', @{$gnupg->{last_message}});
                 }
