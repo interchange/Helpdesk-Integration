@@ -170,6 +170,8 @@ sub parse_messages {
         # check if it's encrypted
         my $body_copy = $$body;
         my $parser = MIME::Parser->new;
+        # avoid leaving files around.
+        $parser->output_to_core(1);
         my $entity = $parser->parse_data($body_copy);
         if (Mail::GnuPG->is_encrypted($entity)) {
             if (my $key = $self->key) {
