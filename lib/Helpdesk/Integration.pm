@@ -195,7 +195,7 @@ sub execute {
     if (!$self->ignore_images and
         !$self->target->image_upload_support) {
         foreach my $m (@mails) {
-            if (@{$m->[1]->attachments}) {
+            if ($m->[1]->file_attached) {
                 my $subject = $m->[1]->subject;
                 $self->_set_error([no_image_support => "$subject: has images!"]);
                 return;
@@ -212,7 +212,19 @@ sub execute {
         if (my $filter = $self->filter) {
             next unless $filter->($eml);
         }
-
+        if (my @events = $eml->ics_events) {
+            warn "ICS file found, ignoring body\n";
+            foreach my $event (@events) {
+                try {
+                    my ($ticket, $msg) = $self->target->create($event);
+                    push @messages, $msg;
+                }
+                  otherwise {
+                      warn "Failed to parse mail with ics files"  . shift . "\n";
+                  };
+            }
+            next;
+        }
 
         # the REST interface doesn't seem to support the from header
         # (only cc and attachments), so it should be OK to inject

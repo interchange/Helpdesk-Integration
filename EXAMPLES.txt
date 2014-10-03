@@ -1,4 +1,5 @@
 set -e
+set -x
 
 # the following examples have all the --debug flag set, which prevents
 #  the removing of the mails from the inbox
@@ -97,4 +98,7 @@ bin/helpdesk-integration --source rt=155
 # Crazy example, but works nevertheless: from gcal to github
 
 ./bin/helpdesk-integration --source gcal --target github
+
+# assuming we have a mail in the mailbox which has one or more .ics attached:
+./bin/helpdesk-integration --debug --source imap --target gcal --subject ical
 

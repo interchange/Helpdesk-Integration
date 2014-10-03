@@ -470,6 +470,10 @@ Options for adding to RT/TeamWork
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.
 
+If the parsed message has one or more iCal attachments, the body is
+ignored and the ics is used instead. Each ical event will generate its
+own ticket, there will be no appending.
+
 HELP
 
 }

@@ -10,6 +10,7 @@ use Google::API::OAuth2::Client;
 use Data::Dumper;
 use Date::Parse;
 use DateTime;
+use Encode qw/encode/;
 
 =head1 NAME
 
@@ -153,11 +154,11 @@ sub create {
                            dateTime => $end_dt->iso8601,
                            timeZone => $end_dt->time_zone->name,
                         },
-                 summary => $eml->subject,
+                 summary => encode('UTF-8', $eml->subject),
                  transparency => 'transparent',
                  # location ?
                  confirmed => 'confirmed',
-                 description => $eml->body,
+                 description => encode('UTF-8', $eml->body),
                 };
     my $ev = $self->insert_event($event);
     if ($ev->{id}) {
@@ -174,7 +175,7 @@ sub _event_append {
     die "No id found" unless $id;
     my $event = $self->get_event($id);
     # update the description
-    $event->{description} .= "\n\n" . $eml->body;
+    $event->{description} .= "\n\n" . encode('UTF-8', $eml->body);
     $self->update_event($event);
     return;
 }
