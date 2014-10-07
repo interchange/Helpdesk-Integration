@@ -1,0 +1,57 @@
+NAME
+    Helpdesk::Integration -- moving request tickets across systems
+
+VERSION
+    0.01
+
+SUPPORTED SYSTEMS
+    GitHub
+        Helpdesk::Integration::GitHub
+
+    Request Tracker
+        Helpdesk::Integration::RT
+
+    IMAP
+        Helpdesk::Integration::IMAP
+
+    Google Calendar
+        Helpdesk::Integration::GoogleCalendar
+
+    TeamWork
+        Helpdesk::Integration::TeamWork
+
+    These are all subclasses of Helpdesk::Integration::Instance.
+
+ACCESSORS
+  filter
+    An optional subroutine which acts as a filter. If returns true, it the
+    message will be processed. If returns false, the message will be
+    ignored.
+
+  ignore_images
+    If true, don't check if the target backend can handle images (will be
+    ignored).
+
+  error
+    When the main `execute' loop fails, the error is set. It will be an
+    arrayref where the first element is the error code, and the second the
+    error string.
+
+    Error codes:
+
+    no_image_support
+
+AUTHORS
+    Marco Pessotto, `melmothx@gmail.com'
+
+    Stefan Hornburg (Racke), `racke@linuxia.de'
+
+LICENSE AND COPYRIGHT
+    Copyright 2013-2014 Stefan Hornburg (Racke), Marco Pessotto.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either: the GNU General Public License as published
+    by the Free Software Foundation; or the Artistic License.
+
+    See http://dev.perl.org/licenses/ for more information.
+
