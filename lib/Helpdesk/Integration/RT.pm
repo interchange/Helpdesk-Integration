@@ -68,6 +68,7 @@ sub create {
                                            Subject => $self->subject || $eml->subject,
                                           },
                                    text => $eml->as_string);
+    $self->set_owner($ticket);
     return $ticket,
       "Created ticket " . $self->server ."/Ticket/Display.html?id=$ticket";
 }

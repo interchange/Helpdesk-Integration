@@ -23,6 +23,11 @@ set -x
 # copy the mails from marco in the ticket 2 as comment
 ./bin/helpdesk-integration --debug --from marco --target rt=2 --comment
 
+# copy the mails from marco in the a new ticket and (try to) set the
+owner to melmothx@gmail.com
+
+./bin/helpdesk-integration --debug --from marco --target rt --workers melmothx@gmail.com
+
 # copy the mails in a new RT ticket setting the subject
 ./bin/helpdesk-integration --debug --from marco --bts-subject "Testing the subj"
 

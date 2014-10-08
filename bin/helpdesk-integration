@@ -399,8 +399,9 @@ Options for adding to RT/TeamWork
 
   --workers <comma-separated list of username or emails>
 
-    Assign the task to a user. The user must be present in the TW
-    project. This for now works only on task creation for Teamwork.
+    Assign the task to a user on creation. Depending on the backend,
+    the user must already be present and have the required
+    permissions. Works on TW and RT (setting the owner).
 
   --dry-run
 
