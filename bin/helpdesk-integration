@@ -31,6 +31,7 @@ my ($subject,
     $bts_subject,
     $ignore_images,
     $transactions,
+    $repo,
     $queue);
 
 # defaults
@@ -70,6 +71,7 @@ GetOptions (
             "todo-list=s" => \$todo_list,
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
+            "repo=s"    => \$repo,
             "workers=s" => \$workers,
             "project=s"   => \$project,
             "dry-run"   => \$dry_run,
@@ -172,6 +174,7 @@ if ($project) {
     }
 }
 
+# aliases
 if ($todo_list) {
     if ($helpdsk->target->type eq 'teamwork') {
         if (!$queue) {
@@ -183,6 +186,19 @@ if ($todo_list) {
     }
     else {
         warn "Ignored option --todo-list $todo_list, not a teamwork target\n";
+    }
+}
+if ($repo) {
+    if ($helpdsk->target->type eq 'github') {
+        if (!$queue) {
+            $queue = $repo;
+        }
+        else {
+            die "repo and queue are alias, you set both, exiting\n";
+        }
+    }
+    else {
+        warn "Ignored option --repo $repo, not a github target\n";
     }
 }
 
@@ -413,6 +429,11 @@ Options for adding to RT/TeamWork
 
     Alias for queue when the target type is teamwork. Ignored
     otherwise.
+
+  --repo '<my-repo>'
+
+    Alias for queue when the target type is github (override the
+    configuration).
 
   --comment
 
