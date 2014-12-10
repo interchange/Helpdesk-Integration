@@ -231,7 +231,8 @@ sub parse_email {
     else {
         my $content_type = $email->content_type;
         my $filename = $email->filename;
-        if ($content_type =~ m/text\/plain/) {
+        if (!$content_type # no content type, plain old email
+            or $content_type =~ m/text\/plain/) {
             $text .= $email->body_str;
         }
         elsif ($filename) {
