@@ -37,6 +37,8 @@ owner to melmothx@gmail.com
 # same for teamwork, but assigning to workers
 ./bin/helpdesk-integration --debug --from marco --bts-subject "Testing the subj" --queue Test --target teamwork --workers "melmothx@gmail.com,bubez"
 
+# add links to RT ticket (#2591 will depend on the created ticket) 
+./bin/helpdesk-integration --debug --source imap --subject "Test" --target rt --link=depended_on_by=2591
 
 # copy the RT ticket 150 in the TW task "This is a test" (and create it
 # if needed).
