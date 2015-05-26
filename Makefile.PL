@@ -13,6 +13,9 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {
+        # recent version to prevent boilerplate error message
+        # unable to create SSL connection: IO::Socket::IP configuration failed
+        'IO::Socket::SSL' => '2.013',
                   'Net::IMAP::Client' => 0,
                   'Email::MIME' => 0,
                   'Error' => 0,
