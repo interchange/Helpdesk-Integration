@@ -17,6 +17,7 @@ my ($subject,
     $from,
     $comment,
     $help,
+    $copy_labels,
     $dry_run,
     $threshold,
     $workers,
@@ -86,6 +87,7 @@ GetOptions (
             "start-date=s"  => \$set_start_date,
             "due-date=s"  => \$set_due_date,
             "transactions=s" => \$transactions,
+            "copy-labels" => \$copy_labels,
             "link=s" => \%links,
            ) or die $removed_options_warning;
 
@@ -164,6 +166,16 @@ $helpdsk->source->search_target;
 
 # precedence: command line, derived target name from custom field, "rt"
 $helpdsk->set_target($target || $helpdsk->source->target_name || "rt");
+
+if ($copy_labels) {
+    unless ($helpdsk->source->type eq 'github' and
+            $helpdsk->target->type eq 'github') {
+        die "--copy-labels works only when source and target are github";
+    }
+    $helpdsk->target->set_labels($helpdsk->source->get_labels);
+    exit;
+}
+
 
 if ($project) {
     if ($helpdsk->target->type eq 'teamwork') {
@@ -480,6 +492,11 @@ Options for adding to RT/TeamWork
     separated ticket ids. The type is case insensitive and underscores
     can be added for better readability. So, depends_on is the same as
     dependson and DependsOn (the real name).
+
+  --copy-labels
+
+    Only valid if both target and source are github repos. Copy and/or
+    update the labels of the source repo to the target repo
 
   --force
 

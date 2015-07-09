@@ -237,5 +237,39 @@ sub set_owner {
     $issue->update_issue($issue_id, { assignee => $worker });
 }
 
+sub get_labels {
+    my ($self) = @_;
+    my $url = '/repos/' . $self->user . '/' . $self->queue . '/labels';
+    return $self->gh->query($url);
+}
+
+sub set_labels {
+    my ($self, @labels)  = @_;
+    my @existing = $self->get_labels;
+    my %existing_labels;
+    foreach my $exist (@existing) {
+        $existing_labels{$exist->{name}} = $exist->{color};
+    }
+    #    print Dumper(\%existing_labels);
+    my (@create, @update);
+    my $base_url = '/repos/' . $self->user . '/' . $self->queue . '/labels';
+    foreach my $label (@labels) {
+        my $set = {
+                   color => $label->{color},
+                   name => $label->{name},
+                  };
+        if (exists $existing_labels{$set->{name}}) {
+            if ($existing_labels{$set->{name}} ne $set->{color}) {
+                $self->gh->query(PATCH => $base_url . '/' . $set->{name}, $set);
+                print "Updating $set->{name} with color $set->{color}\n";
+            }
+        }
+        else {
+            print "Creating $set->{name} with color $set->{color}\n";
+            $self->gh->query(POST => $base_url, $set);
+        }
+    }
+}
+
 
 1;
