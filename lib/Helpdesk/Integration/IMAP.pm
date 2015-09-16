@@ -236,8 +236,8 @@ sub parse_email {
             or $content_type =~ m/text\/plain/) {
             my $chunk = eval { $email->body_str };
             if ($@ && !$chunk) {
-                warn "Email body couldn't be decoded: $@, assuming latin-15";
-                $chunk = eval { decode('latin-15', $email->body) };
+                warn "Email body couldn't be decoded: $@, assuming latin-1\n";
+                $chunk = eval { decode('latin-1', $email->body) };
                 if ($@) {
                     warn "Fallback decoding failed as well...";
                     $chunk = $email->body;
