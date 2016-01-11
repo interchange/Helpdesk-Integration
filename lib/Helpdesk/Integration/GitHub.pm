@@ -271,5 +271,89 @@ sub set_labels {
     }
 }
 
+=head1 SEARCH
+
+=head2 free_search(%params)
+
+=head3 supported keys
+
+See L<https://developer.github.com/v3/issues/>
+
+=over 4
+
+=item milestone
+
+Integer or string.
+
+If an integer is passed, it should refer to a milestone by its number field. If the string * is passed, issues with any milestone are accepted. If the string none is passed, issues without milestones are returned.
+
+=item state
+
+Indicates the state of the issues to return. Can be either open, closed, or all. Default: open
+
+=item assignee
+
+Can be the name of a user. Pass in none for issues with no assigned user, and * for issues assigned to any user.
+
+=item creator
+
+The user that created the issue.
+
+=item mentioned
+
+A user that's mentioned in the issue.
+
+=item labels
+
+A list of comma separated label names. Example: bug,ui,@high
+
+=item sort
+
+What to sort results by. Can be either created, updated, comments. Default: created
+
+=item direction
+
+The direction of the sort. Can be either asc or desc. Default: desc
+
+=item since
+
+Only issues updated at or after this time are returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
+
+=back
+
+=cut
+
+sub free_search {
+    my ($self, %params) = @_;
+    my %supported = (
+                     milestone => 1,
+                     state => 1,
+                     assignee => 1,
+                     creator => 1,
+                     mentioned => 1,
+                     labels => 1,
+                     sort => 1,
+                     direction => 1,
+                     since => 1,
+                    );
+    my %query;
+    foreach my $key (keys %params) {
+        my $lckey = lc($key);
+        if ($supported{$lckey}) {
+            $query{$lckey} = delete $params{$key};
+        }
+    }
+    if (%params) {
+        warn "Unsupported parameters : " . join(' ', keys %params) . "\n";
+    }
+    print "Query is " . Dumper(\%query);
+    my @issues = $self->gh->issue->repos_issues($self->user, $self->queue, { %query });
+    return map { Helpdesk::Integration::Ticket
+        ->new(url => $_->{html_url},
+              subject => $_->{title},
+              id => $_->{number});
+    } @issues;
+}
+
 
 1;

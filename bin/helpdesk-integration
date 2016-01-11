@@ -41,6 +41,7 @@ my $target_string = '';
 
 
 my %links;
+my %search;
 
 my $removed_options_warning = <<'REMOVED';
 
@@ -89,6 +90,7 @@ GetOptions (
             "transactions=s" => \$transactions,
             "copy-labels" => \$copy_labels,
             "link=s" => \%links,
+            "search=s" => \%search,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -116,6 +118,17 @@ if ($ignore_images) {
 }
 
 $helpdsk->set_source($source || "imap");
+
+if (%search) {
+    unless ($helpdsk->source->can('free_search')) {
+        die "search is not supported for " . $helpdsk->source->type . " type\n";
+    }
+    foreach my $ticket ($helpdsk->source->free_search(%search)) {
+        print '#' . $ticket->id . ' ' . $ticket->subject . ' '
+          . $ticket->url . "\n";
+    }
+    exit;
+}
 
 if ($transactions) {
     unless ($helpdsk->source->type eq 'rt') {
@@ -505,6 +518,20 @@ Options for adding to RT/TeamWork
   --debug
 
     Don't archive the mails moving them out of INBOX
+
+  --search key=value (repeatable)
+
+    Search the remote system for key and values. The queries are
+    'AND'ed.
+
+    The supported keys depends on the backend. For RT, something like
+    this will search for open tickets owned and opened by marco.
+
+      helpdesk-integration --source rt --search status=open --search owner=marco --search requestor=marco
+
+    For a github issues, see L<Helpdesk::Integration::GitHub>
+
+      helpdesk-integration --source github --search state=open --search assignee=melmothx
 
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.
