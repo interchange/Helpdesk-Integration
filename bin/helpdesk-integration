@@ -521,11 +521,17 @@ Options for adding to RT/TeamWork
 
   --search key=value (repeatable)
 
-    Search the remote system for key and values. The supported keys
-    depends on the backend. For RT, something like this will search
-    for open tickets owned by marco:
+    Search the remote system for key and values. The queries are
+    'AND'ed.
 
-    helpdesk-integration --source rt --search status=open --search owner=marco
+    The supported keys depends on the backend. For RT, something like
+    this will search for open tickets owned and opened by marco.
+
+      helpdesk-integration --source rt --search status=open --search owner=marco --search requestor=marco
+
+    For a github issues, see L<Helpdesk::Integration::GitHub>
+
+      helpdesk-integration --source github --search state=open --search assignee=melmothx
 
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.
