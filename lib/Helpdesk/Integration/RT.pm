@@ -5,6 +5,7 @@ use Try::Tiny;
 use RT::Client::REST;
 use Date::Parse;
 use DateTime;
+use Helpdesk::Integration::Ticket;
 
 use Moo;
 with 'Helpdesk::Integration::Instance';
@@ -70,7 +71,13 @@ sub create {
                                    text => $eml->as_string);
     $self->set_owner($ticket);
     return $ticket,
-      "Created ticket " . $self->server ."/Ticket/Display.html?id=$ticket";
+      "Created ticket " . $self->_format_ticket_link($ticket);
+}
+
+sub _format_ticket_link {
+    my ($self, $id) = @_;
+    die "Bad usage" unless defined $id;
+    return $self->server ."/Ticket/Display.html?id=$id";
 }
 
 sub _rt_do {
@@ -249,7 +256,7 @@ sub image_upload_support {
 # the messages in the cache and set target_name and target_id, if any
 sub search_target {
     my $self = shift;
-    print "Searching messages\n";
+    # print "Searching messages\n";
     $self->parse_messages;
 }
 
@@ -352,6 +359,40 @@ sub link_to_ticket {
     } catch {
         warn "Couldn't link src $src and dst $target as $realtype: $_\n"
     };
+}
+
+=head1 SEARCH
+
+=head2 free_search(%parameters)
+
+=cut
+
+sub free_search {
+    my ($self, %params) = @_;
+    my @queries;
+    foreach my $k (keys %params) {
+        my $value = $params{$k};
+        $value =~ s/'//g;
+        push @queries, "$k like '$value'";
+    }
+    my $query = join(' AND ', @queries);
+    print "Query is $query\n";
+    my @ids = $self->rt->search(type => 'ticket',
+                        query => $query,
+                        orderby => '-id',
+                               );
+    my @out;
+    foreach my $id (@ids) {
+        my $details = $self->rt->show(type => 'ticket', id => $id);
+        $details->{id} = $id;
+        push @out, $details;
+    }
+    return map { Helpdesk::Integration::Ticket
+        ->new(url => $self->_format_ticket_link($_->{id}),
+              subject => $_->{Subject},
+              id => $_->{id},
+              from => $_->{Owner})
+    } @out;
 }
 
 

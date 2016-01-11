@@ -34,6 +34,10 @@ The end date
 
 The backend system may have a reference for this specific message.
 
+=item url
+
+=item id
+
 =back
 
 =cut
@@ -71,13 +75,19 @@ has to => (is => 'rw',
 has trxid => (is => 'rw',
             default => sub { return "" });
 
-has _tmpdir => (is => 'rw',
-                default => sub { return File::Temp->newdir() });
+has _tmpdir => (is => 'lazy');
+
+sub _build__tmpdir {
+    return File::Temp->newdir;
+}
 
 has _attachment_files => (
                           is => 'rw',
                          );
 
+has url => (is => 'rw', default => sub { '' });
+
+has id => (is => 'rw', default => sub { '' });
 
 =head1 METHODS
 

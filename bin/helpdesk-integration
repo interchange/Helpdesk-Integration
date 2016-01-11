@@ -41,6 +41,7 @@ my $target_string = '';
 
 
 my %links;
+my %search;
 
 my $removed_options_warning = <<'REMOVED';
 
@@ -89,6 +90,7 @@ GetOptions (
             "transactions=s" => \$transactions,
             "copy-labels" => \$copy_labels,
             "link=s" => \%links,
+            "search=s" => \%search,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -116,6 +118,17 @@ if ($ignore_images) {
 }
 
 $helpdsk->set_source($source || "imap");
+
+if (%search) {
+    unless ($helpdsk->source->can('free_search')) {
+        die "search is not supported for " . $helpdsk->source->type . " type\n";
+    }
+    foreach my $ticket ($helpdsk->source->free_search(%search)) {
+        print '#' . $ticket->id . ' ' . $ticket->subject . ' '
+          . $ticket->url . "\n";
+    }
+    exit;
+}
 
 if ($transactions) {
     unless ($helpdsk->source->type eq 'rt') {
