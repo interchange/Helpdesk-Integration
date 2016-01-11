@@ -6,7 +6,7 @@ use RT::Client::REST;
 use Date::Parse;
 use DateTime;
 use Helpdesk::Integration::Ticket;
-
+use Data::Dumper;
 use Moo;
 with 'Helpdesk::Integration::Instance';
 
@@ -373,7 +373,7 @@ sub free_search {
     foreach my $k (keys %params) {
         my $value = $params{$k};
         $value =~ s/'//g;
-        push @queries, "$k like '$value'";
+        push @queries, "(($k = '$value') OR ($k like '$value'))";
     }
     my $query = join(' AND ', @queries);
     print "Query is $query\n";
@@ -387,11 +387,11 @@ sub free_search {
         $details->{id} = $id;
         push @out, $details;
     }
+    # print Dumper(\@out);
     return map { Helpdesk::Integration::Ticket
         ->new(url => $self->_format_ticket_link($_->{id}),
               subject => $_->{Subject},
-              id => $_->{id},
-              from => $_->{Owner})
+              id => $_->{id});
     } @out;
 }
 
