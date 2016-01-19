@@ -90,7 +90,7 @@ GetOptions (
             "transactions=s" => \$transactions,
             "copy-labels" => \$copy_labels,
             "link=s" => \%links,
-            "search=s" => \%search,
+            "search:s" => \%search,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -120,8 +120,19 @@ if ($ignore_images) {
 $helpdsk->set_source($source || "imap");
 
 if (%search) {
+    # print Dumper(\%search);
     unless ($helpdsk->source->can('free_search')) {
         die "search is not supported for " . $helpdsk->source->type . " type\n";
+    }
+    # map the flags if passed
+    if ($subject) {
+        $search{'--subject'} = $subject;
+    }
+    if ($from) {
+        $search{'--from'} = $from;
+    }
+    if ($workers) {
+        $search{'--workers'} = $workers;
     }
     foreach my $ticket ($helpdsk->source->free_search(%search)) {
         print '#' . $ticket->id . ' ' . $ticket->subject . ' '
@@ -532,6 +543,9 @@ Options for adding to RT/TeamWork
     For a github issues, see L<Helpdesk::Integration::GitHub>
 
       helpdesk-integration --source github --search state=open --search assignee=melmothx
+
+    The search will also obey the --from, --subject and --workers
+    options if passed, mapping them to the appropriate keys.
 
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.

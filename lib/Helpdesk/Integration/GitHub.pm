@@ -343,6 +343,24 @@ sub free_search {
             $query{$lckey} = delete $params{$key};
         }
     }
+    my %mapped = (
+                  '' => sub { },
+                  '--from' => sub {
+                      $query{creator} = shift;
+                  },
+                  '--subject' => sub {
+                      warn "Github doesn't support search by keyword\n";
+                  },
+                  '--workers' => sub {
+                      $query{assignee} = shift;
+                  },
+                 );
+    foreach my $key (keys %mapped) {
+        if (exists $params{$key}) {
+            $mapped{$key}->(delete $params{$key});
+        }
+    }
+
     if (%params) {
         warn "Unsupported parameters : " . join(' ', keys %params) . "\n";
     }

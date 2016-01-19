@@ -370,6 +370,25 @@ sub link_to_ticket {
 sub free_search {
     my ($self, %params) = @_;
     my @queries;
+    my %mapped = (
+                  '' => sub { },
+                  '--from' => sub {
+                      $params{requestor} = shift;
+                  },
+                  '--subject' => sub {
+                      $params{subject} = shift;
+                  },
+                  '--workers' => sub {
+                      $params{owner} = shift;
+                  },
+                 );
+    foreach my $key (keys %mapped) {
+        if (exists $params{$key}) {
+            $mapped{$key}->(delete $params{$key});
+        }
+    }
+
+
     foreach my $k (keys %params) {
         my $value = $params{$k};
         $value =~ s/'//g;
