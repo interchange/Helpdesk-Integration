@@ -365,6 +365,9 @@ sub link_to_ticket {
 
 =head2 free_search(%parameters)
 
+C<--from> becomes C<requestor>, C<--workers> becomes C<owner>,
+C<--status> become C<status>
+
 =cut
 
 sub free_search {
@@ -387,7 +390,23 @@ sub free_search {
             $mapped{$key}->(delete $params{$key});
         }
     }
-
+    # handle the status if passed via --status, but don't do anything
+    # if passed literally
+    unless ($params{status} || $params{Status}) {
+        my %statuses = (
+                        open => sub {
+                            push @queries, "(Status = 'new' or Status = 'open' or Status = 'stalled')";
+                        },
+                        closed => sub {
+                            push @queries, "(Status = 'resolved' or Status = 'rejected')";
+                        },
+                        all => sub {
+                            # do nothing
+                            return;
+                        },
+                       );
+        $statuses{$self->default_search_status}->();
+    }
 
     foreach my $k (keys %params) {
         my $value = $params{$k};

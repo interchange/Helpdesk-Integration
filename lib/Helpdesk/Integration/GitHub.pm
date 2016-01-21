@@ -343,6 +343,7 @@ sub free_search {
             $query{$lckey} = delete $params{$key};
         }
     }
+    $query{state} ||= $self->default_search_status;
     my %mapped = (
                   '' => sub { },
                   '--from' => sub {

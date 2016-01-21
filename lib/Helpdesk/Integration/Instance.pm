@@ -215,6 +215,33 @@ has workers => (is => 'rw');
 has subject => (is => 'rw');
 has is_comment => (is => 'rw');
 
+=head2 default_search_status
+
+If the backend support the search (currently, github and rt), the
+default status of the tickets to return. Can be C<open>, C<closed>,
+C<all>.
+
+Can be set in the configuration file as:
+
+  github:
+    type: github
+    user: XXX
+    password: XXXX
+    repo: XXXX
+    default_search_status: all
+
+
+=cut
+
+has default_search_status => (is => 'rw',
+                              isa => sub { die "permitted values are open, closed, all"
+                                             unless ($_[0] eq 'open' or
+                                                     $_[0] eq 'closed' or
+                                                     $_[0] eq 'all');
+                                         },
+                              default => sub { 'open' });
+
+
 sub list_workers {
     my $self = shift;
     my $workers = $self->workers;

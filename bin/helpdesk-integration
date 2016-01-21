@@ -33,6 +33,7 @@ my ($subject,
     $ignore_images,
     $transactions,
     $repo,
+    $status,
     $queue);
 
 # defaults
@@ -91,6 +92,7 @@ GetOptions (
             "copy-labels" => \$copy_labels,
             "link=s" => \%links,
             "search:s" => \%search,
+            "status=s" => \$status,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -133,6 +135,9 @@ if (%search) {
     }
     if ($workers) {
         $search{'--workers'} = $workers;
+    }
+    if (my $search_status = $status || delete $search{'--status'}) {
+        $helpdsk->source->default_search_status($search_status);
     }
     foreach my $ticket ($helpdsk->source->free_search(%search)) {
         print '#' . $ticket->id . ' ' . $ticket->subject . ' '
@@ -546,6 +551,18 @@ Options for adding to RT/TeamWork
 
     The search will also obey the --from, --subject and --workers
     options if passed, mapping them to the appropriate keys.
+
+  --status [ open | closed | all ]
+
+    Used only for searches.
+
+    Override the default_search_status (C<open>), which can also be
+    set in the configuration stanza for the given instance.
+
+    If you pass the system-specific key to --search, e.g. for github
+    C<--search state=open> or C<--search status=stalled> for RT, this
+    is ignored.
+
 
 Please note that the mails are not deleted but moved into the folder
 specified in the imap_default_folder configuration directive.
