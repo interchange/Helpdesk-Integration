@@ -552,6 +552,9 @@ Options for adding to RT/TeamWork
     The search will also obey the --from, --subject and --workers
     options if passed, mapping them to the appropriate keys.
 
+    For RT searches, you can negate the value with a ! prefix. E.g.
+    --search owner='!Nobody'
+
   --status [ open | closed | all ]
 
     Used only for searches.

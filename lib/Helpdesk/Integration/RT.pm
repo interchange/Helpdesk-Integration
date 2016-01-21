@@ -411,7 +411,13 @@ sub free_search {
     foreach my $k (keys %params) {
         my $value = $params{$k};
         $value =~ s/'//g;
-        push @queries, "(($k = '$value') OR ($k like '$value'))";
+        if ($value =~ m/^!\s*(.+)/) {
+            my $negated = $1;
+            push @queries, "($k != '$negated') AND ($k NOT LIKE '$negated')";
+        }
+        else {
+            push @queries, "(($k = '$value') OR ($k like '$value'))";
+        }
     }
     my $query = join(' AND ', @queries);
     print "Query is $query\n";

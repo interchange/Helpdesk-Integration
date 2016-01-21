@@ -365,6 +365,9 @@ sub free_search {
     if (%params) {
         warn "Unsupported parameters : " . join(' ', keys %params) . "\n";
     }
+    if (my @negated = grep { /^!/ } values %query) {
+        die "Github doesn't support the negation of parameters: " . join(' ', @negated) ."\n";
+    }
     print "Query is " . Dumper(\%query);
     my @issues = $self->gh->issue->repos_issues($self->user, $self->queue, { %query });
     return map { Helpdesk::Integration::Ticket
