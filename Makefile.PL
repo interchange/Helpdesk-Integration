@@ -25,6 +25,7 @@ WriteMakefile(
                   'LWP::UserAgent' => 0,
                   'Moo' => 0,
                   'YAML' => 0,
+        'DateTime' => 0,
                   'Date::Parse' => 0,
                   'Mail::GnuPG' => 0,
                   'MIME::Parser' => 0,
