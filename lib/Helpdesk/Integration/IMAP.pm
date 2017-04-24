@@ -159,6 +159,16 @@ sub parse_messages {
             warn "Couldn't retrieve the body mail for $id!";
             next;
         }
+        if (my $parsed = $self->parse_body_message($body)) {
+            push @mails, [$id => $parsed ];
+        }
+    }
+    $self->_set_current_mail_objects(\@mails);
+    return @mails;
+}
+
+sub parse_body_message {
+        my ($self, $body) = @_;
         my $email = Email::MIME->new($$body);
 
         my %details = (
@@ -208,11 +218,7 @@ sub parse_messages {
             $details{body} = $text;
             $details{attachments} = \@attachments;
         }
-        my $simulated = Helpdesk::Integration::Ticket->new(%details);
-        push @mails, [$id => $simulated ];
-    }
-    $self->_set_current_mail_objects(\@mails);
-    return @mails;
+        return Helpdesk::Integration::Ticket->new(%details);
 }
 
 sub parse_email {
