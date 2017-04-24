@@ -29,6 +29,11 @@ has password => (
              required => 1,
             );
 
+has forwarded_mail => (
+                       is => 'ro',
+                       default => sub { 0 },
+                      );
+
 has key => ( is => 'ro');
 has passphrase => (is => 'ro');
 
@@ -167,8 +172,31 @@ sub parse_messages {
     return @mails;
 }
 
+sub _extract_attached_mail {
+    my ($self, $body) = @_;
+    my $email = Email::MIME->new($$body);
+    my @found;
+    foreach my $part ($email->parts) {
+        if ($part->content_type =~ m/^multipart\//) {
+            push @found, $part->as_string;
+        }
+    }
+    if (@found == 1) {
+        return $found[0];
+    }
+    else {
+        warn "You asked for a forwarded mail, but I found " . scalar(@found) . " related parts in the mail";
+        return;
+    }
+}
+
 sub parse_body_message {
         my ($self, $body) = @_;
+        if ($self->forwarded_mail) {
+            if (my $attached_body = $self->_extract_attached_mail($body)) {
+                $body = \$attached_body;
+            }
+        }
         my $email = Email::MIME->new($$body);
 
         my %details = (
