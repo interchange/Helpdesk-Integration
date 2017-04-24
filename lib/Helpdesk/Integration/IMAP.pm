@@ -158,7 +158,7 @@ sub parse_messages {
         unless ($body && $$body) {
             warn "Couldn't retrieve the body mail for $id!";
             next;
-        };
+        }
         my $email = Email::MIME->new($$body);
 
         my %details = (
@@ -183,16 +183,16 @@ sub parse_messages {
                                               (use_agent => 1)));
                 my ($result) = $gnupg->decrypt($entity);
                 if ($result == 0) {
-		    if (my $lines = $gnupg->{plaintext}) {
-			my $body = Email::MIME->new(join('', @$lines));
-			my ($text, @attachments) = $self->parse_email($body);
-			$details{body} = $text;
-			$details{attachments} = \@attachments;
-		    }
-		    else {
-			die "Something went wrong\n";
-		    }
-		}
+                    if (my $lines = $gnupg->{plaintext}) {
+                        my $body = Email::MIME->new(join('', @$lines));
+                        my ($text, @attachments) = $self->parse_email($body);
+                        $details{body} = $text;
+                        $details{attachments} = \@attachments;
+                    }
+                    else {
+                        die "Something went wrong\n";
+                    }
+                }
                 else {
                     die join('', @{$gnupg->{last_message}});
                 }
@@ -209,7 +209,6 @@ sub parse_messages {
             $details{attachments} = \@attachments;
         }
         my $simulated = Helpdesk::Integration::Ticket->new(%details);
-        print $simulated->attachments_filenames;
         push @mails, [$id => $simulated ];
     }
     $self->_set_current_mail_objects(\@mails);
