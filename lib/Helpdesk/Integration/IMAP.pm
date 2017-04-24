@@ -29,8 +29,8 @@ has password => (
              required => 1,
             );
 
-has forwarded_mail => (
-                       is => 'ro',
+has mail_is_attached => (
+                       is => 'rw',
                        default => sub { 0 },
                       );
 
@@ -185,14 +185,14 @@ sub _extract_attached_mail {
         return $found[0];
     }
     else {
-        warn "You asked for a forwarded mail, but I found " . scalar(@found) . " related parts in the mail";
+        warn "You asked for an attached mail, but I found " . scalar(@found) . " related parts in the mail";
         return;
     }
 }
 
 sub parse_body_message {
         my ($self, $body) = @_;
-        if ($self->forwarded_mail) {
+        if ($self->mail_is_attached) {
             if (my $attached_body = $self->_extract_attached_mail($body)) {
                 $body = \$attached_body;
             }
