@@ -33,6 +33,7 @@ my ($subject,
     $ignore_images,
     $transactions,
     $repo,
+    $mail_is_attached,
     $status,
     $queue);
 
@@ -93,6 +94,7 @@ GetOptions (
             "link=s" => \%links,
             "search:s" => \%search,
             "status=s" => \$status,
+            'attached-mail' => \$mail_is_attached
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -162,6 +164,9 @@ if ($transactions) {
 }
 
 if ($helpdsk->source->type eq 'imap') {
+    if ($mail_is_attached) {
+        $helpdsk->source->mail_is_attached(1);
+    }
     unless ($subject || $from) {
         warn "No search parameter specified! This would take the whole INBOX!\n";
         warn "Dry-run mode forced\n";
@@ -437,6 +442,11 @@ Options for fetching the messages:
    --transactions '<comma separated ids>'
 
     A list of transactions id (RT only) to cherry-pick from an RT ticket
+
+   --attached-mail
+
+     (IMAP only) Search for an attached mail in the attachment and use
+     that as the real mail
 
 Options for setting the Start and Due dates. These two options operate
 on the source instance and after setting the date the script will
