@@ -177,12 +177,15 @@ sub _extract_attached_mail {
     my $email = Email::MIME->new($$body);
     my @found;
     foreach my $part ($email->parts) {
-        if ($part->content_type =~ m/^multipart\//) {
+        if ($part->content_type =~ m/^multipart\// or $part->content_type =~ m/^text\/plain/) {
             push @found, $part->as_string;
         }
     }
     if (@found == 1) {
         return $found[0];
+    }
+    if (@found == 2) {
+        return $found[-1];
     }
     else {
         warn "You asked for an attached mail, but I found " . scalar(@found) . " related parts in the mail";
