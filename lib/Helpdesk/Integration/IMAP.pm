@@ -176,15 +176,23 @@ sub _extract_attached_mail {
     my ($self, $body) = @_;
     my $email = Email::MIME->new($$body);
     my @found;
+    my $multipart_found = 0;
     foreach my $part ($email->parts) {
-        if ($part->content_type =~ m/^multipart\// or $part->content_type =~ m/^text\/plain/) {
-            push @found, $part->as_string;
+        if ($part->content_type =~ m/^multipart\//) {
+            @found = ($part->as_string);
+            $multipart_found = 1;
+        }
+        elsif (!$multipart_found) {
+            if ($part->content_type =~ m/^text\/plain/) {
+                push @found, $part->as_string;
+            }
         }
     }
     if (@found == 1) {
         return $found[0];
     }
-    if (@found == 2) {
+    if (@found > 1) {
+        # and let's hope it's the good part.
         return $found[-1];
     }
     else {
