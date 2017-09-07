@@ -29,6 +29,11 @@ has password => (
              required => 1,
             );
 
+has mail_is_attached => (
+                       is => 'rw',
+                       default => sub { 0 },
+                      );
+
 has key => ( is => 'ro');
 has passphrase => (is => 'ro');
 
@@ -158,7 +163,51 @@ sub parse_messages {
         unless ($body && $$body) {
             warn "Couldn't retrieve the body mail for $id!";
             next;
-        };
+        }
+        if (my $parsed = $self->parse_body_message($body)) {
+            push @mails, [$id => $parsed ];
+        }
+    }
+    $self->_set_current_mail_objects(\@mails);
+    return @mails;
+}
+
+sub _extract_attached_mail {
+    my ($self, $body) = @_;
+    my $email = Email::MIME->new($$body);
+    my @found;
+    my $multipart_found = 0;
+    foreach my $part ($email->parts) {
+        if ($part->content_type =~ m/^multipart\//) {
+            @found = ($part->as_string);
+            $multipart_found = 1;
+        }
+        elsif (!$multipart_found) {
+            if ($part->content_type =~ m/^text\/plain/) {
+                push @found, $part->as_string;
+            }
+        }
+    }
+    if (@found == 1) {
+        return $found[0];
+    }
+    if (@found > 1) {
+        # and let's hope it's the good part.
+        return $found[-1];
+    }
+    else {
+        warn "You asked for an attached mail, but I found " . scalar(@found) . " related parts in the mail";
+        return;
+    }
+}
+
+sub parse_body_message {
+        my ($self, $body) = @_;
+        if ($self->mail_is_attached) {
+            if (my $attached_body = $self->_extract_attached_mail($body)) {
+                $body = \$attached_body;
+            }
+        }
         my $email = Email::MIME->new($$body);
 
         my %details = (
@@ -183,16 +232,16 @@ sub parse_messages {
                                               (use_agent => 1)));
                 my ($result) = $gnupg->decrypt($entity);
                 if ($result == 0) {
-		    if (my $lines = $gnupg->{plaintext}) {
-			my $body = Email::MIME->new(join('', @$lines));
-			my ($text, @attachments) = $self->parse_email($body);
-			$details{body} = $text;
-			$details{attachments} = \@attachments;
-		    }
-		    else {
-			die "Something went wrong\n";
-		    }
-		}
+                    if (my $lines = $gnupg->{plaintext}) {
+                        my $body = Email::MIME->new(join('', @$lines));
+                        my ($text, @attachments) = $self->parse_email($body);
+                        $details{body} = $text;
+                        $details{attachments} = \@attachments;
+                    }
+                    else {
+                        die "Something went wrong\n";
+                    }
+                }
                 else {
                     die join('', @{$gnupg->{last_message}});
                 }
@@ -208,12 +257,7 @@ sub parse_messages {
             $details{body} = $text;
             $details{attachments} = \@attachments;
         }
-        my $simulated = Helpdesk::Integration::Ticket->new(%details);
-        print $simulated->attachments_filenames;
-        push @mails, [$id => $simulated ];
-    }
-    $self->_set_current_mail_objects(\@mails);
-    return @mails;
+        return Helpdesk::Integration::Ticket->new(%details);
 }
 
 sub parse_email {
