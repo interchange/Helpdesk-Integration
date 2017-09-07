@@ -26,7 +26,7 @@ filenames, if needed.
 has mail => (is => 'ro',
              isa => InstanceOf['Email::MIME'],
              required => 1,
-             handles => [qw/header/]
+             handles => [qw/header content_type parts/]
             );
 has id => (is => 'ro', isa => Int, default => sub { 0 });
 
@@ -54,6 +54,19 @@ sub BUILDARGS {
     else {
         die "Too many arguments. Accept either a named list or a single scalar with a filename or a reference to a scalar with the mail body";
     }
+}
+
+sub get_html_parts {
+    my $self = shift;
+    my @out;
+    $self->mail->walk_parts(sub {
+                                my ($part) = @_;
+                                return if $part->subparts;
+                                if ($part->content_type =~ m{text/html}i) {
+                                    push @out, $part->body_str;
+                                }
+                            });
+    return @out;
 }
 
 1;
