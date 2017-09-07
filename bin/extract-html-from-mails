@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use utf8;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Helpdesk::Integration;
+use YAML qw/LoadFile Dump/;
+use Getopt::Long;
+use Helpdesk::Integration::IMAP::EmailParser;
+use Pod::Usage;
+
+my %options;
+
+GetOptions (\%options,
+            qw/
+              config=s
+              source=s
+              search=s%
+              output=s
+              help
+              /) or die;;
+
+=encoding utf8
+
+=head1 NAME
+
+extract-html-from-mails -- save the HTML parts from mails
+
+=head1 SYNOPSIS
+
+  extract-html-from-mails [ options ] --search from="sender" [ --search ... ]
+
+Options are:
+
+=over 4
+
+=item --search
+
+The argument must be a name-value pair separated by the equal sign, as
+in the example. If no --search is provided, the script aborts.
+
+=item --config
+
+The file with the Helpdesk::Integration config. Defaults to C<mconf.yml>
+
+=item --source
+
+The name of the configuration stanza. Defaults to C<imap>
+
+=item --output
+
+The directory where to output the files
+
+=item --help
+
+Show this help and exits.
+
+=back
+
+=cut
+
+
+if ($options{help}) {
+    pod2usage();
+    exit;
+}
+
+my $hdi = Helpdesk::Integration->new(configuration => LoadFile($options{config} || 'mconf.yml'));
+
+die "Missing --search option\n" unless $options{search} && %{$options{search}};
+
+
+$hdi->set_source($options{source} || 'imap');
+my $imap = $hdi->source;
+$imap->search_params($options{search});
+my @mails = $imap->get_mail_parsers;
+
+foreach my $m (@mails) {
+    print "Parsing " . $m->header('Subject') . ' ' . $m->header('From') . "\n";
+    my @files = $m->save_html_parts_to_dir($options{output});
+    foreach my $f (@files) {
+        print "Created $f\n";
+    }
+    print "No HTML found\n" unless @files;
+}

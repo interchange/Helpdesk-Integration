@@ -35,6 +35,7 @@ WriteMakefile(
     },
     EXE_FILES => [
                   'bin/helpdesk-integration',
+                  'bin/extract-html-from-mails',
                  ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Helpdesk-Integration-*' },
