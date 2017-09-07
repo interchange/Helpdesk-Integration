@@ -358,6 +358,53 @@ sub type {
     return "imap";
 }
 
+=head2 HTML Extraction
+
+Not directly used by the main module, but could turn out to be useful. E.g.
+
+   my $hdi = Helpdesk::Integration->new(configuration => LoadFile('mconf.yml'));
+   $hdi->set_source('imap');
+   my $imap = $hdi->source;
+   $imap->search_params({ from => "marco" });
+   my @mails = $imap->get_mime_objects;
+
+
+=head3 get_mime_objects
+
+Return a list of L<Email::MIME> objects.
+
+=cut
+
+sub get_mime_objects {
+    my $self = shift;
+    my @out;
+    foreach my $id ($self->list_mails) {
+        push @out, Email::MIME->new($self->imap->get_rfc822_body($id));
+    }
+    return @out;
+}
+
+=head3 get_mail_parsers
+
+Return a list of L<Helpdesk::Integration::IMAP::EmailParser> objects,
+where each of them is a single email.
+
+=cut
+
+sub get_mail_parsers {
+    my $self = shift;
+    require Helpdesk::Integration::IMAP::EmailParser;
+    my @out;
+    foreach my $id ($self->list_mails) {
+        my $obj = Helpdesk::Integration::IMAP::EmailParser
+          ->new(mail => Email::MIME->new($self->imap->get_rfc822_body($id)),
+                id => $id);
+        push @out, $obj;
+    }
+    return @out;
+}
+
+
 =head2 NOT IMPLEMENTED
 
 The following methods are not implemented yet (because usually you
