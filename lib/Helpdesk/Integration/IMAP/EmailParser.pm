@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Types::Standard qw/Object InstanceOf Int/;
 use Email::MIME;
+use Path::Tiny;
+use Text::Unidecode;
 use Moo;
 
 =head1 NAME
@@ -56,6 +58,22 @@ sub BUILDARGS {
     }
 }
 
+=head1 METHODS
+
+=head2 get_html_parts
+
+Return a list of decoded strings with HTML content.
+
+=head2 save_html_parts_to_dir($directory)
+
+Save the HTML into one or more files in the provided directory.
+Use a temporary one if none is provided.
+
+Return the list of file produced as L<Path::Tiny> objects which
+stringify correctly.
+
+=cut
+
 sub get_html_parts {
     my $self = shift;
     my @out;
@@ -67,6 +85,44 @@ sub get_html_parts {
                                 }
                             });
     return @out;
+}
+
+sub save_html_parts_to_dir {
+    my ($self, $dir) = @_;
+    my $wd;
+    if (defined $dir) {
+        $wd = path($dir);
+    }
+    else {
+        $wd = Path::Tiny->tempdir(CLEANUP => 0);
+    }
+    $wd->mkpath unless $wd->exists;
+    die "$wd is not a directory" unless $wd->is_dir;
+    my $counter = 0;
+    my $basename = $self->output_basename;
+    my @out;
+    foreach my $html ($self->get_html_parts) {
+        my $file = $wd->child($basename . '-' . $counter++ . '.html');
+        $file->spew_utf8($html);
+        push @out, $file;
+    }
+    return @out;
+}
+
+sub output_basename {
+    my $self = shift;
+    my @chunks = ();
+    push @chunks, $self->id if $self->id;
+    foreach my $h (qw/Date Subject/) {
+        push @chunks, unidecode($self->header($h));
+    }
+    my $whole = join('-', @chunks);
+    $whole =~ s/[^0-9a-zA-Z_-]/-/g;
+    $whole =~ s/--+/-/g;
+    $whole = substr($whole, 0, 230);
+    $whole =~ s/^-+//;
+    $whole =~ s/-+$//;
+    return $whole;
 }
 
 1;
