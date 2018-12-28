@@ -82,7 +82,7 @@ Always return C<gcal>
 
 =item secrets_file
 
-=item token file
+=item token_file
 
 =item calendar_id
 
