@@ -45,7 +45,6 @@ The backend system may have a reference for this specific message.
 use Moo;
 use File::Temp;
 use File::Spec;
-use File::Slurp;
 use File::Basename qw/fileparse/;
 use Data::Dumper;
 use Date::Parse qw/str2time/;
