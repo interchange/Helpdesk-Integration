@@ -8,3 +8,4 @@
 \.orig$
 \.rej$
 t/nest*
+^.travis.yml$

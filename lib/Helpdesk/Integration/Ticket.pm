@@ -45,7 +45,6 @@ The backend system may have a reference for this specific message.
 use Moo;
 use File::Temp;
 use File::Spec;
-use File::Slurp;
 use File::Basename qw/fileparse/;
 use Data::Dumper;
 use Date::Parse qw/str2time/;
@@ -99,10 +98,18 @@ The full ticket stringified.
 
 The ticket with the body cut to a couple of lines.
 
+=head2 file_attached
+
+Returns a list of filenames for attachments (with the exception of iCal attachments).
+
 =head2 ics_events
 
-Return a list of L<Helpdesk::Integration::Ticket> object if the
+Returns a list of L<Helpdesk::Integration::Ticket> object if the
 message has one or more iCal attachments.
+
+=head2 ics_files
+
+Returns a list of filenames if the message has one or more iCal attachments.
 
 =cut
 
@@ -143,6 +150,12 @@ sub _short_body {
     $beginning =~ s/[^ ]+$//s;
     return $beginning;
 }
+
+=head2 attachments_filenames
+
+List of attachement filenames.
+
+=cut
 
 sub attachments_filenames {
     my $self = shift;

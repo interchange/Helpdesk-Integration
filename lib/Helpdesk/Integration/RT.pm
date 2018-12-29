@@ -29,6 +29,10 @@ The following keys must be passed to the constructor
 
 =item timeout (optional)
 
+=item rt_obj
+
+Instance of L<RT::Client::REST>, automatically created based on the parameters above.
+
 =back
 
 =cut
@@ -42,6 +46,14 @@ has user => (is => 'ro',
 has password => (is => 'ro',
                  required => 1);
 
+=head1 Methods
+
+=head2 rt
+
+Creates L<RT::Client::REST> object once.
+
+=cut
+
 sub rt {
     my $self = shift;
     my $rt = $self->rt_obj;
@@ -54,11 +66,22 @@ sub rt {
     return $rt;
 }
 
+=head2 login
+
+Login to RT.
+
+=cut
+
 sub login {
     my $self = shift;
     $self->rt->login(username => $self->user, password => $self->password);
 }
 
+=head2 create
+
+Creates a ticket.
+
+=cut
 
 sub create {
     my ($self, $eml) = @_;
@@ -93,11 +116,22 @@ sub _rt_do {
     return ucfirst($action) . " added on ticket $ticket";
 }
 
+=head2 comment
+
+Comment on a ticket.
+
+=cut
 
 sub comment {
     my ($self, @args) = @_;
     return $self->_rt_do(comment => @args);
 }
+
+=head2 correspond
+
+Correspond with a ticket.
+
+=cut
 
 sub correspond {
     my ($self, @args) = @_;
@@ -244,16 +278,33 @@ sub parse_messages {
     return @out;
 }
 
+=head3 type
+
+Returns C<rt>.
+
+=cut
+
 sub type {
     return "rt";
 }
+
+=head3 image_upload_support
+
+Always returns true.
+
+=cut
 
 sub image_upload_support {
     return 1;
 }
 
-# search_target will just call parse_messages, which in turn will put
-# the messages in the cache and set target_name and target_id, if any
+=head3 search_target
+
+I<search_target> will just call L<parse_messages>, which in turn will put
+the messages in the cache and set I<target_name> and I<target_id>, if any
+
+=cut
+
 sub search_target {
     my $self = shift;
     # print "Searching messages\n";
@@ -324,6 +375,12 @@ sub _set_date_field_ticket {
         warn "Couldn't set $field to " . localtime($epoch) . " for $ticket: $_\n";
     };
 }
+
+=head2 link_to_ticket
+
+Creates link of type C<$type> to other ticket C<$target>.
+
+=cut
 
 sub link_to_ticket {
     my ($self, $target, $type) = @_;

@@ -8,7 +8,15 @@ use Data::Dumper;
 use Moo;
 with 'Helpdesk::Integration::Instance';
 
-=head2 ACCESSORS
+=head1 Name
+
+Helpdesk::Integration::GitHub - GitHub support
+
+=head1 Description
+
+I<with> L<Helpdesk::Integration::Instance>.
+
+=head1 Accessors
 
 The following keys must be passed to the constructor:
 
@@ -32,11 +40,20 @@ L<https://github.com/settings/applications>, under I<Personal Access Tokens>)
 The C<access_token> will be used if you set both C<password> and
 C<access_token>
 
-Optinally, for Enterprise installations:
+Optionally, for Enterprise installations:
 
 =over 4
 
 =item api_url
+
+=back
+
+
+=over 4
+
+=item gh_obj
+
+Instance of L<Net::GitHub>, automatically created based on the parameters above.
 
 =back
 
@@ -50,6 +67,8 @@ has api_url => (is => 'ro');
 
 has gh_obj => (is => 'rwp');
 
+=head1 Methods
+
 =head2 login
 
 Empty method, not needed.
@@ -59,6 +78,12 @@ Empty method, not needed.
 sub login {
     return;
 }
+
+=head2 gh
+
+Main method.
+
+=cut
 
 sub gh {
     my $self = shift;
@@ -90,6 +115,12 @@ sub gh {
     return $gh;
 }
 
+=head2 create
+
+Create GitHub issue.
+
+=cut
+
 sub create {
     my ($self, $eml) = @_;
     my $issue = $self->gh->issue;
@@ -106,6 +137,12 @@ sub create {
       "\nCreated GH issue $ticket->{html_url}";
 }
 
+=head2 create_comment
+
+Create comment on GitHub issue.
+
+=cut
+
 sub create_comment {
     my ($self, $eml) = @_;
     my $issue = $self->gh->issue;
@@ -117,15 +154,33 @@ sub create_comment {
     return "Created GH comment: " . $comment->{html_url};
 }
 
-sub correspond {
-    my ($self, @args) = @_;
-    return $self->create_comment(@args);
-}
+=head2 comment
+
+Comment on the issue.
+
+=cut
 
 sub comment {
     my ($self, @args) = @_;
     return $self->create_comment(@args);
 }
+
+=head2 correspond
+
+Alias for comment method.
+
+=cut
+
+sub correspond {
+    my ($self, @args) = @_;
+    return $self->create_comment(@args);
+}
+
+=head2 parse_messages
+
+Parses GitHub issue.
+
+=cut
 
 sub parse_messages {
     my $self = shift;
@@ -168,9 +223,21 @@ sub parse_messages {
     return @out;
 }
 
+=head2 type
+
+Returns type (C<github>).
+
+=cut
+
 sub type {
     return "github";
 }
+
+=head2 image_upload_support
+
+Always returns false (Images are not supported).
+
+=cut
 
 sub image_upload_support {
     return 0;
@@ -228,6 +295,12 @@ sub assign_tickets {
     }
 }
 
+=head2 set_owner
+
+Set owner (assignee) of a GitHub issue.
+
+=cut
+
 sub set_owner {
     my ($self, $issue_id) = @_;
     my ($worker) = @{$self->_assign_to};
@@ -237,11 +310,23 @@ sub set_owner {
     $issue->update_issue($issue_id, { assignee => $worker });
 }
 
+=head2 get_labels
+
+Returns labels for a GitHub repository.
+
+=cut
+
 sub get_labels {
     my ($self) = @_;
     my $url = '/repos/' . $self->user . '/' . $self->queue . '/labels';
     return $self->gh->query($url);
 }
+
+=head2 set_labels
+
+Sets labels for a GitHub repsitory.
+
+=cut
 
 sub set_labels {
     my ($self, @labels)  = @_;

@@ -72,7 +72,6 @@ GetOptions (
             "target=s"  => \$target_string,
             "subject=s" => \$subject,
             "from=s"    => \$from,
-            "todo-list=s" => \$todo_list,
             "comment"   => \$comment, #boolean
             "queue=s"   => \$queue,
             "repo=s"    => \$repo,
@@ -210,30 +209,8 @@ if ($copy_labels) {
     exit;
 }
 
-
-if ($project) {
-    if ($helpdsk->target->type eq 'teamwork') {
-        $helpdsk->target->project($project);
-    }
-    else {
-        die $helpdsk->target->conf_name  . " is not a teamwork instance, project would be ignored\n";
-    }
-}
-
 # aliases
-if ($todo_list) {
-    if ($helpdsk->target->type eq 'teamwork') {
-        if (!$queue) {
-            $queue = $todo_list;
-        }
-        else {
-            die "todo-list and queue are alias, you set both, exiting\n";
-        }
-    }
-    else {
-        warn "Ignored option --todo-list $todo_list, not a teamwork target\n";
-    }
-}
+
 if ($repo) {
     if ($helpdsk->target->type eq 'github') {
         if (!$queue) {
@@ -364,7 +341,7 @@ located in the current directory.
 Multiple instance are supported. Every defined instance must have its
 own settings listed as in the example below.
 
-Common keys: type, server, user (not needed for teamwork), password.
+Common keys: type, server, user, password.
 
 If you want to decrypt and pass around encrypted mails from IMAP, you
 need to specify the "key" option in the configuration, with the key's
@@ -397,16 +374,6 @@ rt:
   target_name_field: "Remote system"
   target_id_field: "Teamwork id"
   target_queue_field: "Remote queue"
-teamwork:
-  type: teamwork
-  password: xxxxxxxxxx
-  server: https://linuxiahr.teamworkpm.net
-  project: Linuxia testing
-informa_teamwork:
-  type: teamwork
-  password: xxxxxxxxxxxxxx
-  server: https://linuxiahr.teamworkpm.net
-  project: Linuxia testing
 
 Options to define the source and target:
 
@@ -424,8 +391,7 @@ form replaces the removed options --ticket, --bts-ticket, --gh-issue,
 --tw-task, --source-ticket.
 
 If no target ticket is provided, a new ticket will be created using
-the first mail, and the other will be added as correspondence (for RT)
-or as comment (for Teamwork).
+the first mail, and the other will be added as correspondence (for RT).
 
 Options for fetching the messages:
 
@@ -457,7 +423,7 @@ print the summary and exit.
   --due-date '<string>'
 
 
-Options for adding to RT/TeamWork
+Options for adding to RT
 
   --bts-subject "<New subject>"
 
@@ -476,11 +442,6 @@ Options for adding to RT/TeamWork
     mails, but they are just listed (with the from, to, subject, date
     header and the first 50 characters of the body.
 
-  --todo-list '<id>'
-
-    Alias for queue when the target type is teamwork. Ignored
-    otherwise.
-
   --repo '<my-repo>'
 
     Alias for queue when the target type is github (override the
@@ -491,8 +452,7 @@ Options for adding to RT/TeamWork
     If the comment flag is set, the mails will be added as comment
     when adding a mail to ticket. By default correspondence is added.
     This option is ignored if a new ticket is being created from the
-    email in RT or if you passed the --teamwork flag (mails are
-    comments).
+    email in RT.
 
   --queue '<string>'
 
@@ -506,11 +466,6 @@ Options for adding to RT/TeamWork
     returned mails is greater than than <num> (defaults to 5), because
     if the search is too generic we will end up slurping most or all
     the INBOX. To override this you can use the --force options
-
-  --project <name>
-
-    Name or id of the current TeamWork project. Usually set in the
-    configuration file, but you can override it using this option.
 
   --source-owner <name>
 

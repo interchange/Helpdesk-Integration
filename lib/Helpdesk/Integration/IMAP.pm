@@ -14,6 +14,74 @@ use Moo;
 
 with 'Helpdesk::Integration::Instance';
 
+=head1 Name
+
+Helpdesk::Integration::IMAP - IMAP support
+
+=head1 Description
+
+I<with> L<Helpdesk::Integration::Instance>.
+
+=head1 Accessors
+
+=head2 server
+
+Hostname of IMAP server (required).
+
+=head2 port
+
+Port of IMAP server.
+
+=head2 ssl
+
+Whether to enable SSL for communications with the IMAP server (default: on).
+
+=head2 socket
+
+Socket with the connection to the IMAP server.
+
+=head2 user
+
+Login username (required).
+
+=head2 password
+
+Login password (required).
+
+=head2 target_folder
+
+Currently selected folder (default: C<INBOX>).
+
+=head2 imap_obj
+
+Instance of L<Net::IMAP::Client>, automatically created based on the parameters above.
+
+=head2 key
+
+GnuPG key.
+
+=head2 passphrase
+
+GnuPG passphrase.
+
+=head2 imap_backup_folder
+
+Backup folder for processed emails (default: C<RT-Archive>).
+
+=head2 current_mail_ids
+
+List of current mail ids (as array reference).
+
+=head2 current_mail_objects
+
+List of current mail objects (as array reference).
+
+=head2 mail_is_attached
+
+Whether email is attached to another email (default: false).
+
+=cut
+
 has server => (
                is => 'ro',
                required => 1,
@@ -54,6 +122,14 @@ has current_mail_objects => (is => 'rwp',
 
 has imap_backup_folder => (is => 'rw',
                            default => sub { return "RT-Archive" });
+
+=head1 Methods
+
+=head2 imap
+
+Main instance method.
+
+=cut
 
 sub imap {
     my $self = shift;
@@ -96,10 +172,22 @@ sub imap {
     return $imap;
 }
 
+=head2 login
+
+Login method.
+
+=cut
+
 sub login {
     my $self = shift;
     $self->imap->login or die $self->imap->last_error;
 }
+
+=head2 mail_search_params
+
+Returns hash with current search parameters (for I<From> and I<Subject>).
+
+=cut
 
 sub mail_search_params {
     my $self = shift;
@@ -114,6 +202,12 @@ sub mail_search_params {
     }
     return %do_search;
 }
+
+=head2 list_mails
+
+Returns a list of mail ids from the target folder with search parameters applied.
+
+=cut
 
 sub list_mails {
     my $self = shift;
@@ -201,6 +295,12 @@ sub _extract_attached_mail {
     }
 }
 
+=head2 parse_body_message($body)
+
+Parses email body.
+
+=cut
+
 sub parse_body_message {
         my ($self, $body) = @_;
         if ($self->mail_is_attached) {
@@ -259,6 +359,12 @@ sub parse_body_message {
         }
         return Helpdesk::Integration::Ticket->new(%details);
 }
+
+=head2 parse_email($email)
+
+Parses email C<$email>.
+
+=cut
 
 sub parse_email {
     my ($self, $email) = @_;
@@ -327,6 +433,12 @@ sub archive_messages {
     $self->imap->expunge;
 }
 
+=head2 prepare_backup_folder
+
+Creates L<backup folder|/imap_backup_folder> if it doesn't exist.
+
+=cut
+
 sub prepare_backup_folder {
     my $self = shift;
     my $name = $self->imap_backup_folder_full_path;
@@ -345,6 +457,12 @@ sub _check_folders {
     return 0;
 }
 
+=head2 imap_backup_folder_full_path
+
+Determines full path of IMAP backup folder and returns it.
+
+=cut
+
 sub imap_backup_folder_full_path {
     my $self = shift;
     my $name = $self->imap_backup_folder;
@@ -353,6 +471,12 @@ sub imap_backup_folder_full_path {
     die "No backup folder!" unless $name;
     return "INBOX" . $separator . $name;
 }
+
+=head2 type
+
+Returns type (C<imap>).
+
+=cut
 
 sub type {
     return "imap";
