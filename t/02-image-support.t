@@ -9,7 +9,6 @@ my %classes = (
                Instance => 0,
                GitHub => 0,
                RT => 1,
-               TeamWork => 1,
               );
 
 foreach my $c (keys %classes) {

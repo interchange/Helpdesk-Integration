@@ -36,10 +36,6 @@ L<Helpdesk::Integration::IMAP>
 
 L<Helpdesk::Integration::GoogleCalendar>
 
-=item TeamWork
-
-L<Helpdesk::Integration::TeamWork>
-
 =back
 
 These are all subclasses of L<Helpdesk::Integration::Instance>.
@@ -147,7 +143,6 @@ sub _create_object {
     my %map = (
                rt => 'RT',
                imap => 'IMAP',
-               teamwork => 'TeamWork',
                github => 'GitHub',
                gcal => 'GoogleCalendar',
               );
