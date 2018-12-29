@@ -55,11 +55,23 @@ The default project to use
 
 The default queue (also called todo-list) to use.
 
+=item subject
+
+Subject.
+
 =item workers
 
 The default workers for the instance. This is used only to store the
 defaults on object building. You have to call
 $self->assign_ticket($self->list_workers) to assign.
+
+=item append
+
+Whether to append to the target or create a new entity.
+
+=item is_comment
+
+Whether to comment or correspond to the target.
 
 =back
 
@@ -68,7 +80,7 @@ constructor to define the custom field mapping:
 
 =over 4
 
-=item target_name_field 
+=item target_name_field
 
 =item target_queue_field
 
@@ -162,6 +174,10 @@ Archive the messages parsed
 =item project
 
 Set the project (if supported by the backend)
+
+=item set_owner
+
+Set owner for an entity (ticket, issue, ...).
 
 =item image_upload_support
 
