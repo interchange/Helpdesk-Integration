@@ -1,39 +1,65 @@
 NAME
+
     Helpdesk::Integration -- moving request tickets across systems
 
 VERSION
+
     0.01
 
 SUPPORTED SYSTEMS
+
     GitHub
-        Helpdesk::Integration::GitHub
+
+      Helpdesk::Integration::GitHub
 
     Request Tracker
-        Helpdesk::Integration::RT
+
+      Helpdesk::Integration::RT
 
     IMAP
-        Helpdesk::Integration::IMAP
+
+      Helpdesk::Integration::IMAP
 
     Google Calendar
-        Helpdesk::Integration::GoogleCalendar
 
-    TeamWork
-        Helpdesk::Integration::TeamWork
+      Helpdesk::Integration::GoogleCalendar
 
     These are all subclasses of Helpdesk::Integration::Instance.
 
+    Also there is a class for tickets.
+
 ACCESSORS
-  filter
+
+ source
+
+    Source system.
+
+ target
+
+    Target system.
+
+ configuration
+
+    Configuration for Helpdesk::Integration.
+
+ debug_mode
+
+    Whether to enable debug_mode or not (default: off).
+
+ filter
+
     An optional subroutine which acts as a filter. If returns true, it the
     message will be processed. If returns false, the message will be
     ignored.
 
-  ignore_images
+ ignore_images
+
     If true, don't check if the target backend can handle images (will be
     ignored).
 
-  error
-    When the main `execute' loop fails, the error is set. It will be an
+ error
+
+    When the main execute loop fails, the error is set. It will be an
     arrayref where the first element is the error code, and the second the
     error string.
 
@@ -41,12 +67,32 @@ ACCESSORS
 
     no_image_support
 
-AUTHORS
-    Marco Pessotto, `melmothx@gmail.com'
+Methods
 
-    Stefan Hornburg (Racke), `racke@linuxia.de'
+ set_target
+
+    Setter for target attribute.
+
+ set_source
+
+    Setter for source attribute.
+
+ summary
+
+    Returns summary from emails.
+
+ execute
+
+    Passes tasks from the source to the target, e.g. emails to RT.
+
+AUTHORS
+
+    Marco Pessotto, melmothx@gmail.com
+
+    Stefan Hornburg (Racke), racke@linuxia.de
 
 LICENSE AND COPYRIGHT
+
     Copyright 2013-2014 Stefan Hornburg (Racke), Marco Pessotto.
 
     This program is free software; you can redistribute it and/or modify it
