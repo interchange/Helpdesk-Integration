@@ -44,11 +44,29 @@ L<Helpdesk::Integration::TeamWork>
 
 These are all subclasses of L<Helpdesk::Integration::Instance>.
 
+Also there is a class for L<tickets|Helpdesk::Integration::Ticket>.
+
 =cut
 
 use Moo;
 
 =head1 ACCESSORS
+
+=head2 source
+
+Source system.
+
+=head2 target
+
+Target system.
+
+=head2 configuration
+
+Configuration for Helpdesk::Integration.
+
+=head2 debug_mode
+
+Whether to enable debug_mode or not (default: off).
 
 =cut
 
@@ -154,17 +172,37 @@ sub _create_object {
     return $obj;
 }
 
+=head1 Methods
+
+=head2 set_target
+
+Setter for C<target> attribute.
+
+=cut
+
 sub set_target {
     my ($self, $name) = @_;
     my $obj = $self->_create_object($name);
     $self->_set_target($obj);
 }
 
+=head2 set_source
+
+Setter for C<source> attribute.
+
+=cut
+
 sub set_source {
     my ($self, $name) = @_;
     my $obj = $self->_create_object($name);
     $self->_set_source($obj);
 }
+
+=head2 summary
+
+Returns summary from emails.
+
+=cut
 
 sub summary {
     my $self = shift;
@@ -183,6 +221,11 @@ sub _format_mails {
     return @summary;
 }
 
+=head2 execute
+
+Passes tasks from the source to the target, e.g. emails to RT.
+
+=cut
 
 sub execute {
     my $self = shift;
