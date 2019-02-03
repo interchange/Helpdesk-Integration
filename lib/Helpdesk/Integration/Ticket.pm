@@ -44,8 +44,8 @@ The backend system may have a reference for this specific message.
 
 use Moo;
 use File::Temp;
-use File::Spec;
 use File::Basename qw/fileparse/;
+use Path::Tiny;
 use Data::Dumper;
 use Date::Parse qw/str2time/;
 use Encode qw/decode/;
@@ -77,7 +77,7 @@ has trxid => (is => 'rw',
 has _tmpdir => (is => 'lazy');
 
 sub _build__tmpdir {
-    return File::Temp->newdir;
+    return Path::Tiny->tempdir;
 }
 
 has _attachment_files => (
@@ -160,7 +160,7 @@ List of attachement filenames.
 sub attachments_filenames {
     my $self = shift;
     my @strings = @{ $self->attachments };
-    my $dir = $self->_tmpdir->dirname;
+    my $dir = $self->_tmpdir;
 
     if (my $cached = $self->_attachment_files) {
         return @$cached;
@@ -177,8 +177,8 @@ sub attachments_filenames {
             warn "Skipping hidden filename $provided_filename\n";
             next;
         }
-        my $dest = File::Spec->catfile($dir, $provided_filename);
-        die "Cannot write $dest" unless (write_file($dest, $att->[1]));
+        my $dest = $dir->child($provided_filename);
+        die "Cannot write $dest" unless $dest->spew($att->[1]);
         push @filenames, $dest;
     }
     $self->_attachment_files(\@filenames);
