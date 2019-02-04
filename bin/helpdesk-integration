@@ -34,6 +34,7 @@ my ($subject,
     $transactions,
     $repo,
     $mail_is_attached,
+    $attachment_directory,
     $status,
     $queue);
 
@@ -93,7 +94,8 @@ GetOptions (
             "link=s" => \%links,
             "search:s" => \%search,
             "status=s" => \$status,
-            'attached-mail' => \$mail_is_attached
+            'attached-mail' => \$mail_is_attached,
+            'attachment-directory=s' => \$attachment_directory,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -121,6 +123,11 @@ if ($ignore_images) {
 }
 
 $helpdsk->set_source($source || "imap");
+
+if ($attachment_directory) {
+    print "Saving attachments in $attachment_directory\n";
+    $helpdsk->source->attachment_directory($attachment_directory);
+}
 
 if (%search) {
     # print Dumper(\%search);

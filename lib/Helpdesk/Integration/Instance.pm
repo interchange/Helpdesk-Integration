@@ -127,7 +127,7 @@ The name used in the configuration.
 
 has debug_mode => (is => 'ro');
 has error => (is => 'rwp');
-has attachment_directory => (is => 'ro',
+has attachment_directory => (is => 'rw',
                              default => sub { Path::Tiny->tempdir });
 
 has search_params => (is => 'rw',
