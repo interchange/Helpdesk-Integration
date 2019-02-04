@@ -223,6 +223,7 @@ sub parse_messages {
                        start => str2time($event->{start}->{dateTime}),
                        due => str2time($event->{end}->{dateTime}),
                        trxid => $event->{id},
+                       attachment_directory => $self->attachment_directory,
                       );
         push @tickets, Helpdesk::Integration::Ticket->new(%details);
     }

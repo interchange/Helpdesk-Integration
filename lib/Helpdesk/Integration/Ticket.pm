@@ -74,11 +74,8 @@ has to => (is => 'rw',
 has trxid => (is => 'rw',
             default => sub { return "" });
 
-has _tmpdir => (is => 'lazy');
-
-sub _build__tmpdir {
-    return Path::Tiny->tempdir;
-}
+has attachment_directory => (is => 'ro',
+                             default => sub { Path::Tiny->tempdir });
 
 has _attachment_files => (
                           is => 'rw',
@@ -160,7 +157,8 @@ List of attachement filenames.
 sub attachments_filenames {
     my $self = shift;
     my @strings = @{ $self->attachments };
-    my $dir = $self->_tmpdir;
+    my $dir = path($self->attachment_directory);
+    $dir->mkpath unless -d $dir;
 
     if (my $cached = $self->_attachment_files) {
         return @$cached;

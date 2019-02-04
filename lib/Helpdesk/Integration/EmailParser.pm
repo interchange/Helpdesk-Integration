@@ -133,7 +133,8 @@ sub parse_body_message {
         $details{body} = $text;
         $details{attachments} = \@attachments;
     }
-    return Helpdesk::Integration::Ticket->new(%details);
+    return Helpdesk::Integration::Ticket->new(attachment_directory => $self->attachment_directory,
+                                              %details);
 }
 
 =head2 parse_email($email)

@@ -225,6 +225,7 @@ sub parse_messages {
                           due   => str2time($fullticket->{Due}),
                           subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
+                          attachment_directory => $self->attachment_directory
                          );
     my @details = (Helpdesk::Integration::Ticket->new(%ticket_details));
     # probably here we want to take the first mail and dump it as body
@@ -267,6 +268,7 @@ sub parse_messages {
                                                          trxid => $trx,
                                                          subject => " #$ticket: " . $mail->{Description},
                                                          attachments => \@current_atts,
+                                                         attachment_directory => $self->attachment_directory,
                                                         );
         push @details, $obj;
     }

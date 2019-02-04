@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moo::Role;
 use Helpdesk::Integration::Ticket;
+use Path::Tiny ();
 
 requires qw/type parse_messages login
             comment correspond create/;
@@ -37,6 +38,10 @@ The role requires the consumer to implement the following methods:
 =head2 ACCESSORS
 
 =over 4
+
+=item attachment_directory
+
+Directory where to save the attachments.
 
 =item debug_mode
 
@@ -122,6 +127,9 @@ The name used in the configuration.
 
 has debug_mode => (is => 'ro');
 has error => (is => 'rwp');
+has attachment_directory => (is => 'ro',
+                             default => sub { Path::Tiny->tempdir });
+
 has search_params => (is => 'rw',
                       default => sub { return {} },
                       isa => sub {

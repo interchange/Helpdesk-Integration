@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use Moo;
 use Path::Tiny;
-with qw/Helpdesk::Integration::EmailParser/;
+with qw/Helpdesk::Integration::EmailParser
+        Helpdesk::Integration::Instance/;
 
 =head1 NAME
 
@@ -31,8 +32,6 @@ Same as the other H::I instances.
 
 =cut
 
-
-
 has file => (is => 'ro', required => 1);
 
 has parsed_email => (is => 'lazy');
@@ -55,5 +54,22 @@ sub parse_messages {
     return [undef, $self->parsed_email];
 }
 
+sub type {
+    return 'email_file';
+}
+
+sub login {}
+
+sub comment {
+    die "Not possible to comment on an email file";
+}
+
+sub correspond {
+    die "Not possible to correspond on an email file";
+}
+
+sub create {
+    die "Not implemented";
+}
 
 1;

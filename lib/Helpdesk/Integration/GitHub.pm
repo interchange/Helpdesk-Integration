@@ -200,6 +200,7 @@ sub parse_messages {
                   from => $main->{user}->{login} || "nobody",
                   subject => $main->{title},
                   body => $main->{body},
+                  attachment_directory => $self->attachment_directory,
                  );
     my @details = (Helpdesk::Integration::Ticket->new(%detail));
 
@@ -213,6 +214,7 @@ sub parse_messages {
                        from => $cmt->{user}->{login} || "nobody",
                        subject => "Comment on #$id",
                        body => $cmt->{body},
+                       attachment_directory => $self->attachment_directory,
                       );
         my $obj = Helpdesk::Integration::Ticket->new(%comment);
         push @details, $obj;
