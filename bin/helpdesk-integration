@@ -35,6 +35,7 @@ my ($subject,
     $repo,
     $mail_is_attached,
     $attachment_directory,
+    $filename_pattern,
     $status,
     $queue);
 
@@ -96,6 +97,7 @@ GetOptions (
             "status=s" => \$status,
             'attached-mail' => \$mail_is_attached,
             'attachment-directory=s' => \$attachment_directory,
+            'filename-pattern=s' => \$filename_pattern,
            ) or die $removed_options_warning;
 
 $threshold ||= 5;
@@ -128,6 +130,11 @@ if ($attachment_directory) {
     print "Saving attachments in $attachment_directory\n";
     $helpdsk->source->attachment_directory($attachment_directory);
 }
+
+if ($filename_pattern) {
+    $helpdsk->source->filename_pattern($filename_pattern);
+}
+
 
 if (%search) {
     # print Dumper(\%search);

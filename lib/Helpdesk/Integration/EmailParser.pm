@@ -134,6 +134,7 @@ sub parse_body_message {
         $details{attachments} = \@attachments;
     }
     return Helpdesk::Integration::Ticket->new(attachment_directory => $self->attachment_directory,
+                                              filename_pattern => $self->filename_pattern,
                                               %details);
 }
 

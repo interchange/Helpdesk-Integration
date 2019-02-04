@@ -43,6 +43,10 @@ The role requires the consumer to implement the following methods:
 
 Directory where to save the attachments.
 
+=item filename_pattern
+
+See L<Helpdesk::Integration::Ticket>
+
 =item debug_mode
 
 =item error
@@ -129,6 +133,9 @@ has debug_mode => (is => 'ro');
 has error => (is => 'rwp');
 has attachment_directory => (is => 'rw',
                              default => sub { Path::Tiny->tempdir });
+
+has filename_pattern => (is => 'rw',
+                         default => sub { '(%s)' });
 
 has search_params => (is => 'rw',
                       default => sub { return {} },

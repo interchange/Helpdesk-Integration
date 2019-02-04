@@ -77,6 +77,9 @@ has trxid => (is => 'rw',
 has attachment_directory => (is => 'ro',
                              default => sub { Path::Tiny->tempdir });
 
+has filename_pattern => (is => 'ro',
+                         default => sub { '(%s)' });
+
 has _attachment_files => (
                           is => 'rw',
                          );
@@ -84,6 +87,22 @@ has _attachment_files => (
 has url => (is => 'rw', default => sub { '' });
 
 has id => (is => 'rw', default => sub { '' });
+
+=head2
+
+=over 4
+
+=item attachment_directory
+
+The directory where to place (default: a temporary directory which
+will be removed at the end of the run).
+
+=item filename_pattern
+
+A sprintf pattern to append between the basename and the suffix when
+saving the attachments. Defaults to C<(%s)>.
+
+=back
 
 =head1 METHODS
 
@@ -168,7 +187,8 @@ sub attachments_filenames {
 
     for (my $i = 0; $i < @strings; $i++) {
         my $att = $strings[$i];
-        my ($provided_filename, $directories, $suffix) = fileparse($att->[0]);
+        my ($provided_filename, $directories, $suffix) = fileparse($att->[0], qr{\.[a-zA-Z0-9]+});
+        $suffix //= '';
         unless ($provided_filename and $provided_filename =~ m/\w/) {
             warn "Skipping filename without a name\n";
             next;
@@ -178,7 +198,12 @@ sub attachments_filenames {
             next;
         }
 
-        my $dest = $dir->child($i . '.' . $provided_filename);
+        my $dest = $dir->child($provided_filename . $suffix);
+
+        my $try = 1;
+        while (-e $dest) {
+            $dest = $dir->child($provided_filename . (sprintf($self->filename_pattern, $try) || $try) . $suffix);
+        }
         die "Cannot write $dest" unless $dest->spew($att->[1]);
         push @filenames, $dest;
     }
