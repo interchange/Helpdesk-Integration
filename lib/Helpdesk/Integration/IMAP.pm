@@ -50,14 +50,6 @@ Currently selected folder (default: C<INBOX>).
 
 Instance of L<Net::IMAP::Client>, automatically created based on the parameters above.
 
-=head2 key
-
-GnuPG key.
-
-=head2 passphrase
-
-GnuPG passphrase.
-
 =head2 imap_backup_folder
 
 Backup folder for processed emails (default: C<RT-Archive>).
@@ -70,9 +62,6 @@ List of current mail ids (as array reference).
 
 List of current mail objects (as array reference).
 
-=head2 mail_is_attached
-
-Whether email is attached to another email (default: false).
 
 =cut
 

@@ -6,6 +6,32 @@ use Moo;
 use Path::Tiny;
 with qw/Helpdesk::Integration::EmailParser/;
 
+=head1 NAME
+
+Helpdesk::Integration::EmailFile - Support for .eml
+
+=head1 DESCRIPTION
+
+Inherits from L<Helpdesk::Integration::EmailParser>
+
+=head1 ACCESSORS
+
+=head2 file
+
+=head2 parsed_email
+
+The L<Helpdesk::Integration::Ticket> object resulting from the
+parsing.
+
+=head1 METHODS
+
+=head2 parse_messages
+
+Same as the other H::I instances.
+
+=cut
+
+
 
 has file => (is => 'ro', required => 1);
 

@@ -10,6 +10,28 @@ use Mail::GnuPG;
 use Encode qw/decode/;
 use Helpdesk::Integration::Ticket;
 
+
+=head1 NAME
+
+Helpdesk::Integration::EmailParser - Moo role for parsing mails
+
+=head1 ACCESSORS
+
+=head2 key
+
+GnuPG key.
+
+=head2 passphrase
+
+GnuPG passphrase.
+
+=head2 mail_is_attached
+
+Whether email is attached to another email (default: false).
+
+=cut
+
+
 has mail_is_attached => (
                          is => 'rw',
                          default => sub { 0 },
@@ -46,6 +68,8 @@ sub _extract_attached_mail {
     }
 }
 
+
+=head1 METHODS
 
 =head2 parse_body_message($body)
 
