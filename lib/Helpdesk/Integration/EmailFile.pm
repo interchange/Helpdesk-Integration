@@ -54,6 +54,28 @@ sub parse_messages {
     return [undef, $self->parsed_email];
 }
 
+=head2 type
+
+Return C<email_file>
+
+=head2 login
+
+Empty
+
+=head2 comment
+
+Fatal.
+
+=head2 correspond
+
+Fatal.
+
+=head2 create
+
+Fatal.
+
+=cut
+
 sub type {
     return 'email_file';
 }
