@@ -100,7 +100,8 @@ will be removed at the end of the run).
 =item filename_pattern
 
 A sprintf pattern to append between the basename and the suffix when
-saving the attachments. Defaults to C<(%s)>.
+saving the attachments. Defaults to C<(%s)>. An incremental integer is
+passed.
 
 =back
 
@@ -203,6 +204,7 @@ sub attachments_filenames {
         my $try = 1;
         while (-e $dest) {
             $dest = $dir->child($provided_filename . (sprintf($self->filename_pattern, $try) || $try) . $suffix);
+            $try++;
         }
         die "Cannot write $dest" unless $dest->spew($att->[1]);
         push @filenames, $dest;
