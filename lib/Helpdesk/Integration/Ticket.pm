@@ -167,7 +167,9 @@ sub attachments_filenames {
     }
 
     my @filenames;
-    foreach my $att (@strings) {
+
+    for (my $i = 0; $i < @strings; $i++) {
+        my $att = $strings[$i];
         my ($provided_filename, $directories, $suffix) = fileparse($att->[0]);
         unless ($provided_filename and $provided_filename =~ m/\w/) {
             warn "Skipping filename without a name\n";
@@ -177,7 +179,8 @@ sub attachments_filenames {
             warn "Skipping hidden filename $provided_filename\n";
             next;
         }
-        my $dest = $dir->child($provided_filename);
+
+        my $dest = $dir->child($i . '.' . $provided_filename);
         die "Cannot write $dest" unless $dest->spew($att->[1]);
         push @filenames, $dest;
     }
