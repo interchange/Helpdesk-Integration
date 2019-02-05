@@ -29,6 +29,10 @@ GnuPG passphrase.
 
 Whether email is attached to another email (default: false).
 
+=head2 save_all_attachments
+
+Include text and html parts in the attachments.
+
 =cut
 
 
@@ -38,6 +42,7 @@ has mail_is_attached => (
                         );
 has key => ( is => 'ro');
 has passphrase => (is => 'ro');
+has save_all_attachments => (is => 'rw');
 
 sub _extract_attached_mail {
     my ($self, $body) = @_;
@@ -160,6 +165,7 @@ sub parse_email {
     else {
         my $content_type = $email->content_type;
         my $filename = $email->filename;
+        my $bytes = $email->body;
         if (!$content_type # no content type, plain old email
             or $content_type =~ m/text\/plain/) {
             my $chunk = eval { $email->body_str };
@@ -172,15 +178,22 @@ sub parse_email {
                 }
             }
             $text .= $chunk;
+            if ($self->save_all_attachments) {
+                push @attachments, [ 'mail.txt',  $bytes ];
+            }
         }
         elsif ($filename) {
-            my $bytes = $email->body;
             if ($filename =~ m/^\./ or $filename =~ m!/!) {
                 warn "Illegal filename $filename, ignoring\n";
             }
             else {
                 push @attachments, [ $filename, $bytes ];
             }
+        }
+        elsif ($self->save_all_attachments) {
+            my $ext = $content_type;
+            $ext =~ s/\//./g;
+            push @attachments, [ 'mail.' . $ext, $bytes ];
         }
         else {
             warn "Ignoring $content_type part\n";

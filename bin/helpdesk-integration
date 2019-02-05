@@ -213,7 +213,9 @@ $helpdsk->source->search_target;
 
 if ($target eq 'dump') {
     print join("\n", $helpdsk->summary);
-    my @mails = $helpdsk->source->parse_messages;
+    my $src = $helpdsk->source;
+    $src->save_all_attachments(1);
+    my @mails = $src->parse_messages;
     foreach my $m (@mails) {
         my $mail = $m->[1];
         foreach my $att ($mail->attachments_filenames) {
