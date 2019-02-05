@@ -211,6 +211,18 @@ $helpdsk->source->search_params({subject => $subject,
 
 $helpdsk->source->search_target;
 
+if ($target eq 'dump') {
+    print join("\n", $helpdsk->summary);
+    my @mails = $helpdsk->source->parse_messages;
+    foreach my $m (@mails) {
+        my $mail = $m->[1];
+        foreach my $att ($mail->attachments_filenames) {
+            print "Saved $att\n";
+        }
+    }
+    exit;
+}
+
 # precedence: command line, derived target name from custom field, "rt"
 $helpdsk->set_target($target || $helpdsk->source->target_name || "rt");
 
@@ -427,6 +439,21 @@ Options for fetching the messages:
 
      (IMAP only) Search for an attached mail in the attachment and use
      that as the real mail
+
+   --attachment-directory
+
+     The directory where to place (default: a temporary directory
+     which will be removed at the end of the run).
+
+     If you are only interested in saving the attachments locally, you
+     may want to use --target dump
+
+   --filename-pattern
+
+     A sprintf pattern to append between the basename and the suffix
+     when saving the attachments. Defaults to C<(%s)>. An incremental
+     integer is passed.
+
 
 Options for setting the Start and Due dates. These two options operate
 on the source instance and after setting the date the script will
