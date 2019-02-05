@@ -191,8 +191,10 @@ sub parse_email {
             }
         }
         elsif ($self->save_all_attachments) {
-            my $ext = $content_type;
-            $ext =~ s/\//./g;
+            my $ext = 'data';
+            if ($content_type =~ m/\w\/(\w+)/) {
+                $ext = $1;
+            }
             push @attachments, [ 'mail.' . $ext, $bytes ];
         }
         else {
