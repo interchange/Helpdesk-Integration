@@ -83,10 +83,6 @@ has configuration => (is => 'ro',
                                   die "Missing $k configuration"
                                     unless exists $conf->{$k}->{$v};
                               }
-                              foreach my $v (keys %{$conf->{$k}}) {
-                                  die "Found deeper level"
-                                    if ref($conf->{$k}->{$v});
-                              }
                           }
                       });
 

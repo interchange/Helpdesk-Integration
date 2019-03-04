@@ -46,6 +46,8 @@ has user => (is => 'ro',
 has password => (is => 'ro',
                  required => 1);
 
+has extra_headers => (is => 'ro');
+
 =head1 Methods
 
 =head2 rt
@@ -61,6 +63,13 @@ sub rt {
         # print "RT object empty, creating\n";
         $rt = RT::Client::REST->new(server => $self->server,
                                     timeout => $self->timeout);
+        if (my $headers = $self->extra_headers) {
+            if (ref($headers) eq 'HASH') {
+                foreach my $h (keys %$headers) {
+                    $rt->user_agent->default_header($h => $headers->{$h});
+                }
+            }
+        }
         $self->_set_rt_obj($rt);
     }
     return $rt;
