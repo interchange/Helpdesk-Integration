@@ -8,6 +8,7 @@ use DateTime;
 use Helpdesk::Integration::Ticket;
 use Data::Dumper;
 use Moo;
+use Encode qw/encode/;
 with 'Helpdesk::Integration::Instance';
 
 has rt_obj => (is => 'rwp');
@@ -89,9 +90,9 @@ sub create {
                                    set => {
                                            Queue => $self->queue || "General",
                                            Requestor => $eml->from,
-                                           Subject => $self->subject || $eml->subject,
+                                           Subject => encode('UTF-8', $self->subject || $eml->subject),
                                           },
-                                   text => $eml->as_string);
+                                   text => encode('UTF-8', $eml->as_string));
     $self->set_owner($ticket);
     return $ticket,
       "Created ticket " . $self->_format_ticket_link($ticket);
@@ -112,7 +113,7 @@ sub _rt_do {
     my $ticket = $self->append;
     $self->rt->$action(ticket_id => $ticket,
                        attachments => [ @attach ],
-                       message => $eml->as_string);
+                       message => encode('UTF-8', $eml->as_string));
     return ucfirst($action) . " added on ticket $ticket";
 }
 
