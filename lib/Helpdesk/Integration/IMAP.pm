@@ -159,45 +159,68 @@ sub login {
     $self->imap->login or die $self->imap->last_error;
 }
 
-=head2 mail_search_params
-
-Returns hash with current search parameters (for I<From> and I<Subject>).
-
-=cut
-
-sub mail_search_params {
-    my $self = shift;
-    my %search = %{$self->search_params};
-    my %do_search;
-    if (%search) {
-        foreach my $k (qw/from subject/) {
-            if ($search{$k}) {
-                $do_search{$k} = $search{$k};
-            }
-        }
-    }
-    return %do_search;
-}
-
 =head2 list_mails
 
 Returns a list of mail ids from the target folder with search parameters applied.
 
 =cut
 
+sub _string_quote {
+    my $v = shift;
+    $v =~ s/\\/\\\\/g;
+    $v =~ s/\"/\\\"/g;
+    $v = "\"$v\"";
+    return $v;
+}
+
+sub _imap_search_query {
+    my $self = shift;
+    my @out;
+    my %specs = (
+                 from => sub {
+                     my $value = shift;
+                     return unless $value;
+                     push @out, FROM => _string_quote($value);
+                 },
+                 subject => sub {
+                     my $value = shift;
+                     return unless $value;
+                     push @out, SUBJECT => _string_quote($value);
+                 },
+                 header => sub {
+                     my $headers = shift;
+                     die "Headers must be an hashref" unless ref($headers) eq 'HASH';
+                     foreach my $header (sort keys %$headers) {
+                         push @out, HEADER => _string_quote($header), _string_quote($headers->{$header});
+                     }
+                 },
+                );
+    my %do_search = %{$self->search_params};
+    if (%do_search) {
+        foreach my $h (keys %specs) {
+            if (exists $do_search{$h}) {
+                $specs{$h}->($do_search{$h} // '');
+            }
+        }
+    }
+    if (@out) {
+        # in theory now we could also OR these conditions using '(OR '
+        # instead of '(' at the beginning
+        return '(' . join(' ', @out) . ')';
+    }
+    else {
+        return 'ALL';
+    }
+}
+
 sub list_mails {
     my $self = shift;
     $self->imap->select($self->target_folder);
-    my %do_search = $self->mail_search_params;
     my $ids = [];
-
-    # to do: set sorting
-    if (%do_search) {
-        $ids = $self->imap->search({ %do_search }, 'DATE');
-    }
-    else {
-        $ids = $self->imap->search('ALL', 'DATE');
-    }
+    my $query = $self->_imap_search_query;
+    # to be removed
+    print "IMAP SEARCH $query\n";
+    $ids = $self->imap->search($query, 'DATE');
     unless (@$ids) {
         warn "No mail with matching criteria found";
         $self->_set_error("No mail with the matching criteria found");

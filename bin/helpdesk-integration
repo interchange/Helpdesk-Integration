@@ -46,6 +46,7 @@ my $target_string = '';
 
 my %links;
 my %search;
+my %header;
 
 my $removed_options_warning = <<'REMOVED';
 
@@ -94,6 +95,7 @@ GetOptions (
             "copy-labels" => \$copy_labels,
             "link=s" => \%links,
             "search:s" => \%search,
+            'header=s' => \%header,
             "status=s" => \$status,
             'attached-mail' => \$mail_is_attached,
             'attachment-directory=s' => \$attachment_directory,
@@ -180,7 +182,7 @@ if ($helpdsk->source->type eq 'imap') {
     if ($mail_is_attached) {
         $helpdsk->source->mail_is_attached(1);
     }
-    unless ($subject || $from) {
+    unless ($subject || $from || %header) {
         warn "No search parameter specified! This would take the whole INBOX!\n";
         warn "Dry-run mode forced\n";
         $dry_run = 1;
@@ -204,11 +206,16 @@ if ($set_start_date || $set_due_date) {
 }
 
 
+if (%header) {
+    die "header search is supported only for imap " if $helpdsk->source->type ne 'imap';
+    # print Dumper(\%header);
+}
+
 $helpdsk->source->search_params({subject => $subject,
                                  from => $from,
                                  ticket => $source_ticket,
+                                 (%header ? (header => \%header) : ()),
                                 });
-
 $helpdsk->source->search_target;
 
 if ($target eq 'dump') {
@@ -432,6 +439,13 @@ Options for fetching the messages:
 
     The mails with the from header containing the given string will be
     added to RT. It's relevant only if the source is an imap type.
+
+  --header '<name>=<value>'
+
+    (Implemented only for IMAP). Retrieve the mails having the header
+    matching the value passed. If the value is an empty string, search
+    only for the existence of the header. Only a single query is
+    supported.
 
    --transactions '<comma separated ids>'
 
