@@ -88,6 +88,9 @@ sub parse_body_message {
         if (my $attached_body = $self->_extract_attached_mail($body)) {
             $body = \$attached_body;
         }
+        else {
+            warn "Couldn't find attached body.";
+        }
     }
     my $email = Email::MIME->new($$body);
 
