@@ -29,6 +29,10 @@ GnuPG passphrase.
 
 Whether email is attached to another email (default: false).
 
+=head2 save_all_attachments
+
+Include text and html parts in the attachments.
+
 =cut
 
 
@@ -38,6 +42,7 @@ has mail_is_attached => (
                         );
 has key => ( is => 'ro');
 has passphrase => (is => 'ro');
+has save_all_attachments => (is => 'rw');
 
 sub _extract_attached_mail {
     my ($self, $body) = @_;
@@ -82,6 +87,9 @@ sub parse_body_message {
     if ($self->mail_is_attached) {
         if (my $attached_body = $self->_extract_attached_mail($body)) {
             $body = \$attached_body;
+        }
+        else {
+            warn "Couldn't find attached body.";
         }
     }
     my $email = Email::MIME->new($$body);
@@ -134,6 +142,7 @@ sub parse_body_message {
         $details{attachments} = \@attachments;
     }
     return Helpdesk::Integration::Ticket->new(attachment_directory => $self->attachment_directory,
+                                              filename_pattern => $self->filename_pattern,
                                               %details);
 }
 
@@ -159,6 +168,7 @@ sub parse_email {
     else {
         my $content_type = $email->content_type;
         my $filename = $email->filename;
+        my $bytes = $email->body;
         if (!$content_type # no content type, plain old email
             or $content_type =~ m/text\/plain/) {
             my $chunk = eval { $email->body_str };
@@ -171,15 +181,24 @@ sub parse_email {
                 }
             }
             $text .= $chunk;
+            if ($self->save_all_attachments) {
+                push @attachments, [ 'mail.txt',  $bytes ];
+            }
         }
         elsif ($filename) {
-            my $bytes = $email->body;
             if ($filename =~ m/^\./ or $filename =~ m!/!) {
                 warn "Illegal filename $filename, ignoring\n";
             }
             else {
                 push @attachments, [ $filename, $bytes ];
             }
+        }
+        elsif ($self->save_all_attachments) {
+            my $ext = 'data';
+            if ($content_type =~ m/\w\/(\w+)/) {
+                $ext = $1;
+            }
+            push @attachments, [ 'mail.' . $ext, $bytes ];
         }
         else {
             warn "Ignoring $content_type part\n";

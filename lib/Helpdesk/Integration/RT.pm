@@ -225,6 +225,7 @@ sub parse_messages {
                           due   => str2time($fullticket->{Due}),
                           subject => " #$ticket : " . $fullticket->{Subject},
                           body => "RT ticket $ticket in queue $fullticket->{Queue}",
+                          filename_pattern => $self->filename_pattern,
                           attachment_directory => $self->attachment_directory
                          );
     my @details = (Helpdesk::Integration::Ticket->new(%ticket_details));
@@ -268,6 +269,7 @@ sub parse_messages {
                                                          trxid => $trx,
                                                          subject => " #$ticket: " . $mail->{Description},
                                                          attachments => \@current_atts,
+                                                         filename_pattern => $self->filename_pattern,
                                                          attachment_directory => $self->attachment_directory,
                                                         );
         push @details, $obj;
