@@ -221,7 +221,7 @@ sub list_mails {
     # to be removed
     print "IMAP SEARCH $query\n";
     $ids = $self->imap->search($query, 'DATE');
-    unless (@$ids) {
+    unless ($ids && @$ids) {
         warn "No mail with matching criteria found";
         $self->_set_error("No mail with the matching criteria found");
         return;
