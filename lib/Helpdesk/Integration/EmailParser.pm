@@ -95,10 +95,10 @@ sub parse_body_message {
     my $email = Email::MIME->new($$body);
 
     my %details = (
-                   date => $email->header("Date"),
-                   from => $email->header("From"),
-                   to   => $email->header("To"),
-                   subject => $email->header("Subject"),
+                   date => $email->header("Date") || '',
+                   from => $email->header("From") || '',
+                   to   => $email->header("To")   || '',
+                   subject => $email->header("Subject") || '',
                   );
 
     # check if it's encrypted
@@ -173,10 +173,10 @@ sub parse_email {
             or $content_type =~ m/text\/plain/) {
             my $chunk = eval { $email->body_str };
             if ($@ && !$chunk) {
-                warn "Email body couldn't be decoded: $@, assuming latin-1\n";
+                # warn "Email body couldn't be decoded: $@, assuming latin-1\n";
                 $chunk = eval { decode('latin-1', $email->body) };
                 if ($@) {
-                    warn "Fallback decoding failed as well...";
+                    # warn "Fallback decoding failed as well...";
                     $chunk = $email->body;
                 }
             }
@@ -201,7 +201,7 @@ sub parse_email {
             push @attachments, [ 'mail.' . $ext, $bytes ];
         }
         else {
-            warn "Ignoring $content_type part\n";
+            # warn "Ignoring $content_type part\n";
         }
     }
     return $text, @attachments;

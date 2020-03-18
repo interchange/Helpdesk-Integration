@@ -209,9 +209,7 @@ sub _format_mails {
     my @summary;
     foreach my $mail (@mails) {
         push @summary,
-          join(" ",
-               $mail->[0] // "virtual mail",
-               ".", $mail->[1]->summary);
+          join('', $mail->[0] // "virtual mail", ': ' , $mail->[1]->summary);
     }
     return @summary;
 }

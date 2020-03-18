@@ -222,7 +222,7 @@ sub list_mails {
     print "IMAP SEARCH $query\n";
     $ids = $self->imap->search($query, 'DATE');
     unless ($ids && @$ids) {
-        warn "No mail with matching criteria found";
+        warn "No mail with matching criteria found\n";
         $self->_set_error("No mail with the matching criteria found");
         return;
     }
