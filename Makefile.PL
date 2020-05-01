@@ -19,7 +19,8 @@ WriteMakefile(
                   'Net::IMAP::Client' => 0,
                   'Email::MIME' => 0,
                   'Error' => 0,
-                  'RT::Client::REST' => 0.45,
+        # contains important bugfix (#118729)
+                  'RT::Client::REST' => 0.58,
                   'Net::GitHub' => 0.47,
                   'JSON' => 0,
                   'LWP::UserAgent' => 0,
