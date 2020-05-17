@@ -29,6 +29,10 @@ The following keys must be passed to the constructor
 
 =item timeout (optional)
 
+=item verbose_errors
+
+Whether to show verbose errors or not (enabled by default).
+
 =item rt_obj
 
 Instance of L<RT::Client::REST>, automatically created based on the parameters above.
@@ -46,6 +50,8 @@ has user => (is => 'ro',
 has password => (is => 'ro',
                  required => 1);
 
+has verbose_errors => (is => 'ro', default => 1);
+
 =head1 Methods
 
 =head2 rt
@@ -60,7 +66,9 @@ sub rt {
     unless ($rt) {
         # print "RT object empty, creating\n";
         $rt = RT::Client::REST->new(server => $self->server,
-                                    timeout => $self->timeout);
+                                    timeout => $self->timeout,
+                                    verbose_errors => $self->verbose_errors,
+                                );
         $self->_set_rt_obj($rt);
     }
     return $rt;
