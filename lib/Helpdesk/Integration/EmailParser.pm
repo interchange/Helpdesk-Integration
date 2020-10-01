@@ -9,6 +9,7 @@ use MIME::Parser;
 use Mail::GnuPG;
 use Encode qw/decode/;
 use Helpdesk::Integration::Ticket;
+use HTML::FormatText::WithLinks;
 
 
 =head1 NAME
@@ -153,13 +154,38 @@ Parses email C<$email>.
 =cut
 
 sub parse_email {
-    my ($self, $email) = @_;
+    my ($self, $email, $opts) = @_;
+
+    # top level, parse the html
+    $opts ||= { parse_html => 1 };
+
+    my $top = $opts ? 1 : 0;
     my @attachments;
     my $text = '';
     if (my @parts = $email->subparts) {
-        # print "entering loop\n";
+        my $html_body = 0;
+        foreach my $p (@parts) {
+            my $content_type = $p->content_type;
+            my $filename = $p->filename;
+            my %ctparts;
+            if (!$content_type # no content type, plain old email
+                or $content_type =~ m/text\/plain/) {
+                $ctparts{text}++;
+            }
+            elsif ($filename) {
+                $ctparts{file}++;
+            }
+            elsif ($content_type =~ m/text\/html/) {
+                $ctparts{html}++;
+            }
+
+            if ($ctparts{html} && !$ctparts{text}) {
+                # lame all-html mail
+                $html_body = 1;
+            }
+        }
         foreach my $part (@parts) {
-            my ($subtext, @subattach) = $self->parse_email($part);
+            my ($subtext, @subattach) = $self->parse_email($part, { parse_html => $html_body });
             $text .= $subtext;
             push @attachments, @subattach;
         }
@@ -200,6 +226,10 @@ sub parse_email {
             }
             push @attachments, [ 'mail.' . $ext, $bytes ];
         }
+        elsif ($content_type =~ m/text\/html/ and $opts->{parse_html}) {
+            $text .= $self->_html_to_text($email->body_str);
+            push @attachments, [ 'mail.html', $bytes ];
+        }
         else {
             warn "Ignoring $content_type part\n";
         }
@@ -207,5 +237,9 @@ sub parse_email {
     return $text, @attachments;
 }
   
+sub _html_to_text {
+    my ($self, $html) = @_;
+    return HTML::FormatText::WithLinks->new->parse($html);
+}
 
 1;

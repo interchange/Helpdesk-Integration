@@ -31,6 +31,7 @@ WriteMakefile(
                   'Mail::GnuPG' => 0,
                   'MIME::Parser' => 0,
                   'Google::API::Client' => 0.13,
+                  'HTML::FormatText::WithLinks' => 0,
     },
     EXE_FILES => [
                   'bin/helpdesk-integration',
